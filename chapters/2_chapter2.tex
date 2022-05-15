@@ -18,38 +18,113 @@
 % The Current Maintainer of this work is Feng Kaiyu.
 %%
 
-\chapter{另一个章节}
+\chapter{环境搭建}
 
-\section{代码片段}
+\section{软件环境}
 
-\begin{lstlisting}[language=Python, caption={Python Code}, label={lst:pythonfile}]
-import numpy as np
+\subsection{编译工具链}
+step1.访问sifive官网，下载riscv gcc toolchain
 
-def incmatrix(genl1,genl2):
-    m = len(genl1)
-    n = len(genl2)
-    M = None #to become the incidence matrix
-    VT = np.zeros((n*m,1), int)  #dummy variable
+\href{https://www.sifive.com/software}{https://www.sifive.com/software}
 
-    #compute the bitwise xor matrix
-    M1 = bitxormatrix(genl1)
-    M2 = np.triu(bitxormatrix(genl2),1)
+step2.找到Prebuilt RISC-V GCC Toolchain。根据开发环境选择对应的版本。
 
-    for i in range(m-1):
-        for j in range(i+1, m):
-            [r,c] = np.where(M2 == M1[i,j])
-            for k in range(len(r)):
-                VT[(i)*n + r[k]] = 1;
-                VT[(i)*n + c[k]] = 1;
-                VT[(j)*n + r[k]] = 1;
-                VT[(j)*n + c[k]] = 1;
+\begin{figure}[htbp]
+    \vspace{13pt} % 调整图片与上文的垂直距离
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/toolchain.png}
+    \caption{编译工具链列表}\label{编译工具链列表} % label 用来在文中索引
+\end{figure}
 
-                if M is None:
-                    M = np.copy(VT)
-                else:
-                    M = np.concatenate((M, VT), 1)
+step3.将下载好的tar.gz压缩包解压
 
-                VT = np.zeros((n*m,1), int)
-
-    return M
+\begin{lstlisting}[caption={解压命令}, label={lst:tar_command}]
+    tar -zxvf $your_tar_gz
 \end{lstlisting}
+
+step4.配置环境变量。解压完成得到文件夹，进入文件夹里的bin目录，打开terminal，输入pwd获得当前路径。
+复制获得的路径。将复制到的路径加入系统的PATH环境变量。
+
+\begin{lstlisting}[caption={修改环境变量}, label={lst:change_env}]
+    vim /etc/profile
+    #添加以下两行到文件末尾
+    export RISCV=$your_path
+    export PATH=$PATH:$RISCV
+\end{lstlisting}
+
+\begin{figure}[htbp]
+    \vspace{13pt} % 调整图片与上文的垂直距离
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/env_path.png}
+    \caption{配置环境变量}\label{配置环境变量} % label 用来在文中索引
+\end{figure}
+
+step5.加载环境变量文件
+
+\begin{lstlisting}[caption={加载环境变量文件}, label={lst:load_env_profile}]
+    source /etc/profile
+\end{lstlisting}
+
+step6.验证编译环境
+
+在终端输入 riscv64-unknown-elf-gcc -v，如果出现以下内容，则编译环境配置成功。
+
+\begin{lstlisting}[caption={验证编译环境}, label={lst:check_env}]
+    Using built-in specs.
+    ....
+    gcc version 10.2.0 (SiFive GCC-Metal 10.2.0-2020.12.8) 
+\end{lstlisting}
+
+\subsection{代码准备}
+
+step1.下载riscv64-pke-k210的代码库并查看所有分支
+
+\begin{lstlisting}[caption={下载代码库}, label={lst:download_code}]
+    git clone git@github.com:BITzga/riscv64-pke-k210.git
+    git branch -a
+\end{lstlisting}
+
+step2.根据开发需求选择分支。
+
+如下所示，k210前缀的代码分支是根据k210环境移植完成的代码。而其他普通分支则是PKE原先的代码。此时，根据开发需求使用git checkout命令选择分支即可。
+
+\begin{lstlisting}[caption={分支列表}, label={lst:branch_list}]
+    remotes/origin/k210/lab1_1_syscall
+    remotes/origin/k210/lab1_2_exception
+    remotes/origin/k210/lab1_3_irq
+    remotes/origin/k210/lab2_1_pagetable
+    remotes/origin/k210/lab2_2_allocatepage
+    remotes/origin/k210/lab2_3_pagefault
+    remotes/origin/k210/lab3_1_fork
+    remotes/origin/k210/lab3_2_yield
+    remotes/origin/k210/lab3_3_rrsched
+    remotes/origin/lab1_1_syscall
+    remotes/origin/lab1_2_exception
+    remotes/origin/lab1_3_irq
+    remotes/origin/lab2_1_pagetable
+    remotes/origin/lab2_2_allocatepage
+    remotes/origin/lab2_3_pagefault
+    remotes/origin/lab3_1_fork
+    remotes/origin/lab3_2_yield
+    remotes/origin/lab3_3_rrsched
+    remotes/origin/master
+\end{lstlisting}
+
+
+\subsection{编辑器、IDE选择}
+
+\subsection{K210环境}
+
+RustSBI-K210支持
+
+Python3环境
+
+烧录工具
+
+串口调试环境
+
+
+
+\section{硬件环境}
+
+\subsection{K210硬件要求}
