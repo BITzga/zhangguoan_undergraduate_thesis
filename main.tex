@@ -98,16 +98,19 @@
 % 修复脚注出现跨页的问题
 \interfootnotelinepenalty=10000
 
+
+% 绪论
+\input{chapters/xulun.tex}
 % 第一章
-\input{chapters/1_chapter1.tex}
+\input{chapters/theory_and_tech.tex}
 % 在这里添加第二章、第三章……TeX 文件的引用
-\input{chapters/2_chapter2.tex}
-\input{chapters/3_chapter3.tex}
-\input{chapters/4_chapter4.tex}
-\input{chapters/5_chapter5.tex}
-\input{chapters/6_chapter6.tex}
-\input{chapters/7_chapter7.tex}
-\input{chapters/8_chapter8.tex}
+\input{chapters/env.tex}
+\input{chapters/procedure_change.tex}
+\input{chapters/syscall_irq_exception.tex}
+\input{chapters/memory.tex}
+\input{chapters/process.tex}
+\input{chapters/chapter_sys_test.tex}
+\input{chapters/tutorial_write_and_manage.tex}
 
 % 结论：在结论相应的 TeX 文件处进行结论部分的撰写
 \input{misc/3_conclusion.tex}
