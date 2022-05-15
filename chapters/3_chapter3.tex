@@ -1,11 +1,161 @@
 
 \chapter{编译流程及内核启动流程改造}
 
-\section{二级题目}
-% 这里插入一个参考文献，仅作参考
-正文……\cite{yuFeiJiZongTiDuoXueKeSheJiYouHuaDeXianZhuangYuFaZhanFangXiang2008}
+\section{引入RustSBI}
 
-\subsection{三级题目}
+\subsection{SBI背景与现状}
 
-正文……\cite{Hajela2012Application}
+移植K210时，PKE需要依赖SBI（Supervisor Binary Interface）提供BOOTLOADER和RUNTIME功能，所以烧录内核时需要带上SBI固件。
+通过调研发现，OpenSBI与RustSBI（用Rust语言实现的SBI）均按照SBI标准实现。这两种也是业内使用最多的开源SBI。
+qemu就是用了OpenSBI为RISC-V提供了环境支持。
+此外，RustSBI还对K210做了特殊支持。
+所以目前暂定使用RustSBI当作SBI固件，为PKE提供BOOTLOADER功能和RUNTIME运行时服务。
+移植过程中我们不需要关心RustSBI的具体实现，只需要根据SBI标准调用其接口即可。
 
+除此之外，引入SBI，可以便于内核在其他板子上运行。
+当更换板子时，不需要改变内核代码，只需要更改RustSBI的支持包，获取对应硬件平台的支持包即可。
+这也简化了后续内核在其他芯片的移植工作。
+
+\subsection{RustSBI的中断和异常委托}
+
+\subsection{RustSBI提供bootLoader功能与运行时服务}
+
+\subsection{使用RustSBI兼容K210旧版指令集}
+
+RustSBI在K210兼容了高版本的指令。
+K210实现的RISC-V指令集是1.9.1标准的。目前最新的特权级标准已经达到1.11。
+如果我们的内核代码里有用到更高级的RISC-V汇编指令，可能会在K210上无法运行。
+这种情况下，就要改动内核的代码，会带来许多工作量。
+因此，使用RustSBI可以使我们免去处理RISC-V汇编版本的麻烦。
+
+\section{编译流程改造}
+
+\subsection{编译流程改造的背景}
+
+\subsection{内存布局改造}
+由于我们引入了RustSBI，RustSBI需要占用0x80000000-0x8001FFFF的物理内存空间。所以，内核的程序入口点由此发生了变化。我们需要修改内核lds文件，更改了程序的入口点以保证内核可以正常运行。
+
+首先，我们现在mentry.S中加入以下两行代码，用以确保\_mentry是内核的程序入口点。
+
+\begin{lstlisting}[caption={修改内核程序入口点}, label={lst:change_kernel_entry}]
+    .globl _mentry
+    .section .text.prologue, "ax"
+    _mentry:
+\end{lstlisting}
+
+确定了内核的程序入口点，还需要把程序入口点的地址设置为0x80020000，这需要我们对内存布局进行改造。
+修改BASE\_ADDRESS，赋值为0x80020000.并设置代码段的起始地址为BASE\_ADDRESS，自此，内存布局就修改完成了。
+
+\begin{lstlisting}[caption={修改内存布局}, label={lst:change_memory_layout}]
+    OUTPUT_ARCH(riscv)
+    ENTRY(_mentry)
+    BASE_ADDRESS = 0x80020000;
+    SECTIONS
+    {
+      /*--------------------------------------------------------------------*/
+      /* Code and read-only segment                                         */
+      /*--------------------------------------------------------------------*/
+    
+      /* Begining of code and text segment, starts from DRAM_BASE to be effective before enabling paging */
+      . = BASE_ADDRESS;
+      
+      /* text: Program code section */
+      .text : 
+      {
+        stext = .;
+        *(.text.prologue);
+        *(.text .stub .text.* .gnu.linkonce.t.*);
+        . = ALIGN(0x1000);
+        ......
+       }
+    
+\end{lstlisting}
+
+\subsection{Makefile改造}
+
+由于我们需要引入RustSBI，并需要将其打包进入内核。
+除此之外，还需要将内核烧录到K210，并与K210进行串口通讯。
+现有的Makefile并不支持这些工作。因此，我们需要修改MakeFile。
+
+\begin{lstlisting}[caption={修改Makefile}, label={lst:change_makefile}]
+    $(KERNEL_K210_TARGET): $(KERNEL_TEMP_TARGET) $(BOOTLOADER)
+    $(COPY) $(BOOTLOADER) $@
+    $(V)dd if=$(KERNEL_TEMP_TARGET) of=$@ bs=128K seek=1
+\end{lstlisting}
+
+整体的编译流程为：
+
+1.打包内核
+
+\begin{lstlisting}[caption={打包内核}, label={lst:pack_kernel}]
+    $(KERNEL_K210_TARGET): $(KERNEL_TEMP_TARGET) $(BOOTLOADER)
+    $(COPY) $(BOOTLOADER) $@
+     $(V)dd if=$(KERNEL_TEMP_TARGET) of=$@ bs=128K seek=1
+\end{lstlisting}
+
+
+以上步骤是为了把rust-sbi.bin和pke.img打包成kernel.img。
+bs=128k意味着输入/输出的block大小为128k，seek=1意味着跳过第零个block进行复制操作。
+也就是说，内核镜像里第零个block存放着rust-sbi.bin，第一个block才开始存放pke.img。
+128k对应着十六进制0x20000，也就是二进制的0010 0000 0000 0000 0000。
+
+我们的kernel.img放置在0x80000000处，再加上以上原因，pke的地址自然就是0x8020000。
+所以，我们需要在链接脚本kernel.lds里指定内核起始地址为0x8020000，这也相当于告诉SBI这是内核的起始地址。
+当SBI在行使bootloader的功能时，会跳转到0x8020000，将控制权转接给内核。
+
+2.烧录
+
+用数据线将K210与上位机连接，再使用kflash，指定好相关参数即可完成烧录。
+
+\begin{lstlisting}[caption={烧录}, label={lst:burn}]
+    $(PYTHON) compile_tool/kflash.py -p $(PORT) -b 1500000 $(KERNEL_K210_TARGET)
+\end{lstlisting}
+
+3.运行minitem，与K210进行串口通讯
+
+\begin{lstlisting}[caption={运行minitem}, label={lst:run_minitem}]
+    $(TERM) --eol LF --dtr 0 --rts 0 --filter direct $(PORT) 115200
+\end{lstlisting}
+
+打开miniterm,接收K210的串口打印输出。
+
+4.总结
+
+最小可执行内核在K210的运行流程是：
+指定内核起始地址->打包完整内核镜像->
+烧录到flash->引导程序加载和运行RustSBI->
+RustSBI运行并跳转到内核的指定地址->
+RustSBI将控制权交接给内核->内核运行
+
+\subsection{编译自动化脚本编写}
+
+\section{内核启动流程改造}
+
+\subsection{用户程序加载}
+
+在原先pke的中，是通过调用spike接口，进而调用linux的文件系统接口来加载用户程序的。
+而在K210上，我们没有spike的环境支持，不能直接调用spike接口。
+因此，加载用户程序就需要自行实现文件系统，或者使用其他办法。
+
+由于文件系统的实现较为繁琐，其工作量会阻塞这个移植进度。
+因此，我们暂时不实现文件系统，而是采用获取用户程序地址，再加载的办法来实现这个需求。
+
+具体的做法是：
+
+\begin{enumerate}
+    \item 将用户程序、内核和RustSBI一起编译打包到kernel.img
+    \item 使用objdump命令查找到用户程序main函数的地址
+    \item 得到地址以后，把地址的值赋值到内核加载用户程序处
+\end{enumerate}
+
+通过这种技术方案，我们可以用较低的开发成本实现用户程序加载。
+
+\subsection{内核程序入口点修改}
+
+由于RustSBI已经运行在M态，并且为我们提供了许多运行时服务。
+有了RustSBI，在K210上，pke运行在M态会破坏RustSBI的设计，因此pke只需要运行在S态即可。
+
+这样，我们就可以直接将pke的M态代码根据自身需求迁移到S态代码。
+迁移完成后，需要更改内核程序入口点至S态入口
+
+修改mentry.S文件，将call m\_start 替换成 call s\_start
