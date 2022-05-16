@@ -206,30 +206,128 @@ PKE中是使用MMIO（memory mapping IO）来设置定时中断。
 从减少开发成本的角度考虑，该接口使用SBI接口来实现的方案最低，可以免去查阅资料和测试的成本。
 因此，该接口也需要我们进行移植。
 
-\subsection{接口移植的技术方案}
+\subsection{接口移植的技术方案及实现}
 
-\subsubsection{串口}
+\subsubsection{串口及格式化输出实现}
+
+由于我们已经引入了RustSBI，我们很容易实现串口输出。
+我们只需要调用SBI提供的串口服务即可。
+
+\begin{lstlisting}[language=C, caption={串口实现代码}, label={lst:serial_output} ]
+    uint64 SBI_CONSOLE_PUTCHAR = 1;
+    uint64 sbi_call(uint64 sbi_type, uint64 arg0, uint64 arg1, uint64 arg2) {
+    uint64 ret_val;
+    __asm__ volatile (
+    "mv x17, %[sbi_type]\n"
+    "mv x10, %[arg0]\n"
+    "mv x11, %[arg1]\n"
+    "mv x12, %[arg2]\n"
+    "ecall\n"
+    "mv %[ret_val], x10"
+    : [ret_val] "=r"(ret_val)
+    : [sbi_type] "r"(sbi_type), [arg0] "r"(arg0), [arg1] "r"(arg1), [arg2] "r"(arg2)
+    : "memory"
+    );
+        return ret_val;
+    }
+
+    void sbi_console_putchar(unsigned char ch) {
+        sbi_call(SBI_CONSOLE_PUTCHAR, ch, 0, 0);
+    }
+\end{lstlisting}
+
+有了串口输出的方法，接下来我们需要格式化输出sprint.sprint定义在spike\_utils.c,接下来我们看看sprint的代码实现。
+
+\begin{lstlisting}[language=C, caption={sprint实现代码}, label={lst:sprint} ]
+    void sprint(char *buf, const char *fmt, ...) {
+        va_list args;
+        va_start(args, fmt);
+        vsnprintf(buf, 1024, fmt, args);
+        va_end(args);
+    }
+\end{lstlisting}
+
+sprint函数的第一个参数对应了一个字符串的起始地址，第二个参数...代表可变参数。接下来我们点开vprintk的实现:
+
+\begin{lstlisting}[language=C, caption={vprintk实现代码}, label={lst:vprintk} ]
+    void vprintk(const char* s, va_list vl) {
+        char out[256];
+        int res = vsnprintf(out, sizeof(out), s, vl);
+        //you need spike_file_init before this call
+        spike_file_write(stderr, out, res < sizeof(out) ? res : sizeof(out));
+    }
+\end{lstlisting}
+
+通过阅读代码发现，vsnprintf并没有将字符串真正输出到控制台。
+而是根据原先的字符串和参数做字符串格式化，将最终结果保存在out数组中。
+
+真正将字符串打印的函数调用是spike\_file\_write。
+这个函数是调用了spike的接口，通过spike去调用Linux的字符串打印API。
+所以我们需要在K210上实现串口输出，方案已经很明显，就是将vprintk函数中的spike\_file\_write函数替换成sbi\_console\_putchar实现的打印函数cputs。
+
+\begin{lstlisting}[language=C, caption={vprintk改造代码}, label={lst:vprintk_dev} ]
+    void vprintk(const char *s, va_list vl) {
+        char out[256];
+        int res = vsnprintf(out, sizeof(out), s, vl);
+        cputs(out);
+    }
+    /* *
+     * cputs- writes the string pointed by @str to stdout and
+     * appends a newline character.
+     * */
+    int cputs(const char *str) {
+        int cnt = 0;
+        char c;
+        while ((c = *str++) != '\0') {
+            cputch(c, &cnt);
+        }
+        cputch('\n', &cnt);
+        return cnt;
+    }   
+\end{lstlisting}
+
+至此，我们完成了串口实现和格式化输出。通过在K210上验证，我们的sprint可以通过串口，在控制台上输出格式化的字符串。
 
 \subsubsection{文件系统相关接口}
 
 \subsubsection{Device Tree相关接口}
 
-\subsubsection{shutdown接口}
+PKE运行在S态，设备树文件已经由M态的RustSBI读取并处理。因此PKE不需要读取和解析设备树文件。
+所以，我们在移植时，只需要去除PKE读取DTB的代码即可。
 
-\subsubsection{poweroff接口}
+\subsubsection{shutdown与poweroff接口}
+
+内核在编码调试过程中，需要借助一些方法来判断变量值是否符合预期，如assert方法。
+如果不符合预期需要打印错误信息，并且让内核panic。
+那么panic在pke上是如何实现的呢？我们可以阅读pke实现panic的代码。
+
+\begin{lstlisting}[language=C, caption={panic实现代码}, label={lst:panic} ]
+    void do_panic(const char *s, ...) {
+        va_list vl;
+        va_start(vl, s);
+        sprint(s, vl);
+        shutdown(-1);
+        va_end(vl);
+    }
+    
+    void shutdown(int code) {
+      sprint("System is shutting down with exit code %d.\n", code);
+      frontend_syscall(HTIFSYS_exit, code, 0, 0, 0, 0, 0, 0);
+      while (1)
+        ;
+    }    
+\end{lstlisting}
+
+通过观察我们可以发现，panic的调用链路是:
+
+do\_panic->shutdown->frontend\_syscall
+
+最终panic是通过frontend\_syscall调用spike提供的接口实现的。
+既然是需要调用spike的HTIF，与spike的HTIF具有依赖关系，那么我们移植的时候就需要去除相关依赖，自行实现do\_panic函数。
+
+通过观察panic和poweroff功能，很容易发现，他们都是打印报错信息，然后终止了硬件线程（hart）。
+那么我们可以通过调用SBI的shutdown接口来实现这两个接口，打印报错以后以后，终止所有的hart。
 
 \subsubsection{定时器接口}
 
-\subsection{接口移植的具体实现}
-
-\subsubsection{串口}
-
-\subsubsection{文件系统相关接口}
-
-\subsubsection{Device Tree相关接口}
-
-\subsubsection{shutdown接口}
-
-\subsubsection{poweroff接口}
-
-\subsubsection{定时器接口}
+参考uCore通过调用SBI接口来实现定时器接口。
