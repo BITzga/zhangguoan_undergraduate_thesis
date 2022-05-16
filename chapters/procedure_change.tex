@@ -1,5 +1,5 @@
 
-\chapter{编译流程及内核启动流程改造}
+\chapter{移植PKE的具体实现}
 
 \section{引入RustSBI}
 
@@ -27,6 +27,8 @@ K210实现的RISC-V指令集是1.9.1标准的。目前最新的特权级标准�
 如果我们的内核代码里有用到更高级的RISC-V汇编指令，可能会在K210上无法运行。
 这种情况下，就要改动内核的代码，会带来许多工作量。
 因此，使用RustSBI可以使我们免去处理RISC-V汇编版本的麻烦。
+
+\subsection{使用RustSBI兼容不同的RISC-V开发板}
 
 \section{编译流程改造}
 
@@ -131,6 +133,10 @@ RustSBI将控制权交接给内核->内核运行
 
 \section{内核启动流程改造}
 
+\subsection{背景}
+
+\subsection{内核启动流程改造前后对比}
+
 \subsection{用户程序加载}
 
 在原先pke的中，是通过调用spike接口，进而调用linux的文件系统接口来加载用户程序的。
@@ -159,6 +165,14 @@ RustSBI将控制权交接给内核->内核运行
 迁移完成后，需要更改内核程序入口点至S态入口
 
 修改mentry.S文件，将call m\_start 替换成 call s\_start
+
+\section{驱动开发}
+
+\subsection{驱动开发背景}
+
+\subsection{串口驱动}
+
+\subsection{时钟驱动}
 
 \section{接口移植}
 
@@ -331,3 +345,14 @@ do\_panic->shutdown->frontend\_syscall
 \subsubsection{定时器接口}
 
 参考uCore通过调用SBI接口来实现定时器接口。
+
+\section{用户程序加载}
+你好
+\subsection{背景}
+你好
+
+\subsection{单个进程加载}
+你好
+
+\subsection{多进程支持}
+你好
