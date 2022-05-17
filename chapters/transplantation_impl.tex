@@ -133,8 +133,6 @@ RustSBI将控制权交接给内核->内核运行
 
 \section{内核启动流程改造}
 
-\subsection{背景}
-
 \subsection{内核启动流程改造前后对比}
 
 \subsection{用户程序加载}
@@ -170,15 +168,12 @@ RustSBI将控制权交接给内核->内核运行
 
 \section{驱动开发}
 
-\subsection{驱动开发背景}
-
 \subsection{串口驱动}
 
 \subsection{时钟驱动}
 
-\section{接口移植}
+\section{HTIF依赖移除及接口移植}
 
-\subsection{接口移植的背景}
 PKE已有代码对spike提供的HTIF（Host-Target InterFace）接口存在依赖。
 当PKE需要打印字符串到屏幕、访问主机上的文件或设备时会调用HTIF相关接口。
 PKE通过HTIF接口调用Linux对应接口，进而实现访问外部设备的功能。
@@ -190,7 +185,7 @@ K210板子要同时运行PKE和Linux两个内核程序，还要提供spike模拟
 所以移植PKE到K210时，我们需要移除PKE对HTIF的依赖，自行实现其依赖功能，编写相关代码。
 这样K210只需要运行一个内核程序（PKE）即可，移植工作的开发成本会很低。
 
-\subsection{移植所需接口梳理}
+\subsection{涉及接口梳理}
 
 \subsubsection{串口相关接口}
 运行在K210上的PKE，需要使用串口接口来进行串口的访问。打印字符串到上位机。这样子才能方便我们进行实验验证，程序调试。
@@ -349,8 +344,6 @@ do\_panic->shutdown->frontend\_syscall
 参考uCore通过调用SBI接口来实现定时器接口。
 
 \section{用户程序加载}
-你好
-\subsection{背景}
 你好
 
 \subsection{单个进程加载}
