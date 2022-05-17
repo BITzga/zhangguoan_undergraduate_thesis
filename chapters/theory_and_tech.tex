@@ -125,11 +125,26 @@ M层的内核只需要在初始化时，根据异常、中断的状态码值，
 在委托寄存器的对应二进制位赋值即可。
 委托寄存器的初始化结束以后，寄存器上对应的异常/中断的拦截与处理都会交接给S模式的内核。
 
-\section{现有K210板子内核移植工作的参考}
+\section{现有内核在K210移植工作的参考}
 
 \subsection{K210的基本信息}
 
-\subsection{THU ucore的移植过程}
+\begin{figure}[htbp]
+    \vspace{13pt} % 调整图片与上文的垂直距离
+    \centering
+    \includegraphics[width=0.6\textwidth]{images/K210.png}
+    \caption{K210 MCU}\label{K210 MCU} % label 用来在文中索引
+\end{figure}
 
-\subsection{MIT xv6的移植过程}
+K210是由嘉楠公司推出的一款MCU，它具有成本低、高性能、性价比高等特点。
+
+K210拥有基于RISC-V架构、64位的双核CPU。它具有6MB物理内存，它的晶振频率是400-600MHZ。
+除此之外，它拥有嘉楠自研的神经网络计算加速器KPU，可以进行高性能的神经网络计算。
+
+K210的成本低廉。一块不带其他外设的K210 MCU，只需要一百多元。
+这样成本低廉的物理开发板对嵌入式开发、操作系统实验教学、学生自学计算机知识很有好处。
+
+\subsection{THU ucore在K210的移植过程}
+
+\subsection{MIT xv6在K210的移植过程}
 
