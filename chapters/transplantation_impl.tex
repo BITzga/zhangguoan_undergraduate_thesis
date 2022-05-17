@@ -5,11 +5,11 @@
 
 \subsection{SBI背景与现状}
 
-移植K210时，PKE需要依赖SBI（Supervisor Binary Interface）提供BOOTLOADER和RUNTIME功能，所以烧录内核时需要带上SBI固件。
+移植K210时，PKE需要依赖SBI（Supervisor Binary Interface）提供Bootloader和RUNTIME功能，所以烧录内核时需要带上SBI固件。
 通过调研发现，OpenSBI与RustSBI（用Rust语言实现的SBI）均按照SBI标准实现。这两种也是业内使用最多的开源SBI。
 qemu就是用了OpenSBI为RISC-V提供了环境支持。
 此外，RustSBI还对K210做了特殊支持。
-所以目前暂定使用RustSBI当作SBI固件，为PKE提供BOOTLOADER功能和RUNTIME运行时服务。
+所以目前暂定使用RustSBI当作SBI固件，为PKE提供Bootloader功能和RUNTIME运行时服务。
 移植过程中我们不需要关心RustSBI的具体实现，只需要根据SBI标准调用其接口即可。
 
 除此之外，引入SBI，可以便于内核在其他板子上运行。
@@ -18,7 +18,7 @@ qemu就是用了OpenSBI为RISC-V提供了环境支持。
 
 \subsection{RustSBI的中断和异常委托}
 
-\subsection{RustSBI提供bootLoader功能与运行时服务}
+\subsection{RustSBI提供Bootloader功能与运行时服务}
 
 \subsection{使用RustSBI兼容K210旧版指令集}
 
@@ -103,7 +103,7 @@ bs=128k意味着输入/输出的block大小为128k，seek=1意味着跳过第零
 
 我们的kernel.img放置在0x80000000处，再加上以上原因，pke的地址自然就是0x8020000。
 所以，我们需要在链接脚本kernel.lds里指定内核起始地址为0x8020000，这也相当于告诉SBI这是内核的起始地址。
-当SBI在行使bootloader的功能时，会跳转到0x8020000，将控制权转接给内核。
+当SBI在行使Bootloader的功能时，会跳转到0x8020000，将控制权转接给内核。
 
 2.烧录
 
