@@ -25,6 +25,16 @@
 
 \subsection{代理内核的概念}
 
+代理内核(Proxy Kernel)是一种特殊的操作系统内核。
+代理内核系统是由代理内核和Host主机的操作系统Ubuntu组成的。
+代理内核与Host主机的操作系统之间使用HTIF接口进行通信。
+
+代理内核并不是一个独立的操作系统，它虽然拥有IO功能，但它不具备IO的独立实现。
+它的IO功能实现依赖于Host主机的操作系统Ubuntu。
+也就是说，代理内核Proxy Kernel与Host主机的操作系统Ubuntu是并行在运行的。
+它们之间通过HTIF(Host Target Interface)通信。
+当代理内核需要进行IO时，代理内核就通过HTIF调用Host主机的操作系统Ubuntu的IO接口，以达到IO的目的。
+
 \subsection{代理内核的思想}
 
 \subsection{代理内核实验的基本介绍}
