@@ -23,7 +23,7 @@ PKE就通过调用spike提供的HTIF接口，
 \begin{figure}[htbp]
     \vspace{13pt} % 调整图片与上文的垂直距离
     \centering
-    \includegraphics[width=0.6\textwidth]{images/spike_structure.png}
+    \includegraphics[width=0.9\textwidth]{images/spike_structure.png}
     \caption{模拟器环境架构}\label{模拟器环境架构} % label 用来在文中索引
 \end{figure}
 
@@ -43,7 +43,7 @@ riscv-fesvr通过共享内存的方式，接收PKE的请求，使用ARM端的资
 \begin{figure}[htbp]
     \vspace{13pt} % 调整图片与上文的垂直距离
     \centering
-    \includegraphics[width=0.6\textwidth]{images/pke_hardware_env.drawio.png}
+    \includegraphics[width=0.9\textwidth]{images/pke_hardware_env.drawio.png}
     \caption{硬件环境架构}\label{硬件环境架构} % label 用来在文中索引
 \end{figure}
 
@@ -154,13 +154,61 @@ PKE移植后，我们将拥有如下收益:
 
 \section{移植K210前PKE的总体设计}
 
+在PKE移植前，我们对PKE的架构、各主要功能模块、执行流程进行了梳理。
+本节将对这些梳理好的内容进行介绍。
+这将便于读者理解我们后续的移植工作。
+
 \subsection{系统架构}
+
+\begin{figure}[htbp]
+    \vspace{13pt} % 调整图片与上文的垂直距离
+    \centering
+    \includegraphics[width=0.9\textwidth]{images/before_sys_struct.drawio.png}
+    \caption{移植前PKE的系统架构}\label{移植前PKE的系统架构} % label 用来在文中索引
+\end{figure}
+
+如架构图所示，硬件之上，我们的系统分为三种特权模式。
+分别为机器模式（M-mode）、监管者模式（S-mode）、用户模式（U-mode）。
+
+代理内核PKE可以运行在两种特权模式。
+这两种特权模式分别是机器模式和监管者模式（S-mode）。
+
+PKE运行在机器模式时，主要负责内核的初始化工作，
+如读取并解析设备树文件、将时钟初始化、将HTIF接口初始化、
+将异常与中断委托寄存器初始化、设置内核入口点、设置中断向量表、加载用户进程。
+除此之外，处于M模式的PKE还负责部分中断/异常的拦截与处理。
+只要是没有委托给S模式的中断与异常，都会交给M模式的PKE进行拦截与处理。
+
+PKE运行在监管者模式时，主要负责物理内存的管理、
+虚拟内存的管理、物理内存与虚拟内存地址的转换、
+进程的调度、部分中断与异常的拦截与处理。
+
+用户程序则运行在用户态。在PKE启动时，
+用户程序会被PKE加载到内存中，
+然后加载成进程，最终由PKE运行。
+用户程序的特权级是最低的，拥有的权限最少。
+PKE会为用户程序提供系统调用接口，在保证权限安全的情况下，
+为用户程序提供所需功能。
 
 \subsection{主要功能模块介绍}
 
 \subsection{执行流程}
 
 \section{移植PKE到K210的技术方案}
+
+引入RustSBI
+
+改造编译流程
+
+改造内核的启动流程
+
+迁移内核初始化逻辑
+
+驱动开发
+
+HTIF依赖移除及接口移植
+
+用户程序加载
 
 \section{移植K210后PKE的总体设计}
 
