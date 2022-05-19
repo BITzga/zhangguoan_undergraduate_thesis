@@ -163,8 +163,24 @@ K210实现的RISC-V指令集版本是1.9.1，而最新的RISC-V指令集版本�
 \end{lstlisting}
 
 \section{定时器中断}
+给定用户态应用user/app\_long\_loop.c
+
+\begin{lstlisting}[caption={用户态应用app\_long\_loop.c}, label={lst:app_long_loop}, language=C]
+    #include "user_lib.h"
+
+    int main(void) {
+      printu("Hello world!\n");
+      int i;
+      for (i = 0; i < 100000000; ++i) {
+        if (i % 5000000 == 0) printu("wait %d\n", i);
+      }
+      exit(0);
+    }
+\end{lstlisting}
 
 \subsection{实验预期}
+
+
 
 \subsection{实验改进}
 
@@ -174,6 +190,17 @@ K210实现的RISC-V指令集版本是1.9.1，而最新的RISC-V指令集版本�
 
 \section{虚拟地址和物理地址的转换}
 
+给定用户态应用user/app\_helloworld\_no\_lds.c
+
+\begin{lstlisting}[caption={用户态应用app\_helloworld\_no\_lds.c}, label={lst:app_helloworld_no_lds}, language=C]
+    #include "user_lib.h"
+    
+    int main(void) {
+      printu("Hello world!\n");
+      exit(0);
+    }    
+\end{lstlisting}
+
 \subsection{实验预期}
 
 \subsection{具体实现}
@@ -182,6 +209,28 @@ K210实现的RISC-V指令集版本是1.9.1，而最新的RISC-V指令集版本�
 
 \section{基本的内存管理}
 
+给定用户态应用user/app\_naive\_malloc.c
+
+\begin{lstlisting}[caption={用户态应用app\_naive\_malloc.c}, label={lst:app_naive_malloc}, language=C]
+    #include "user_lib.h"
+    
+    struct my_structure {
+      char c;
+      int n;
+    };
+    
+    int main(void) {
+      struct my_structure* s = (struct my_structure*)naive_malloc();
+      s->c = 'a';
+      s->n = 1;
+
+      printu("s: %lx, {%c %d}\n", s, s->c, s->n);
+    
+      naive_free(s);
+      exit(0);
+    }   
+\end{lstlisting}
+
 \subsection{实验预期}
 
 \subsection{具体实现}
@@ -189,7 +238,28 @@ K210实现的RISC-V指令集版本是1.9.1，而最新的RISC-V指令集版本�
 \subsection{执行流程}
 
 \section{栈空间不足与缺页异常}
-你好
+
+给定应用user/app\_sum\_sequence.c
+
+\begin{lstlisting}[caption={用户态应用app\_sum\_sequence.c}, label={lst:app_sum_sequence}, language=C]
+    #include "user_lib.h"
+    #include "../util/types.h"
+
+    uint64 sum_sequence(uint64 n) {
+      if (n == 0)
+        return 0;
+      else
+        return sum_sequence( n-1 ) + n;
+    }
+    
+    int main(void) {
+      uint64 n = 1000;
+      printu("Summation of an arithmetic sequence from 0 to %ld is: %ld \n", n, sum_sequence(n) );
+      exit(0);
+    }
+        
+\end{lstlisting}
+
 \subsection{实验预期}
 
 \subsection{具体实现}
@@ -197,6 +267,25 @@ K210实现的RISC-V指令集版本是1.9.1，而最新的RISC-V指令集版本�
 \subsection{执行流程}
 
 \section{创建子进程fork的实现}
+
+给定应用user/app\_naive\_fork.c
+
+\begin{lstlisting}[caption={用户态应用app\_naive\_fork.c}, label={lst:app_naive_fork}, language=C]
+    #include "../user/user_lib.h"
+    #include "../util/types.h"
+    
+    int main(void) {
+        uint64 pid = fork();
+        if (pid == 0) {
+            printu("Child: Hello world!\n");
+        } else {
+            printu("Parent: Hello world! child id %ld\n", pid);
+        }
+    
+        exit(0);
+    }
+       
+\end{lstlisting}
 
 \subsection{实验预期}
 
@@ -208,6 +297,39 @@ K210实现的RISC-V指令集版本是1.9.1，而最新的RISC-V指令集版本�
 
 \section{进程的控制权交接}
 
+给定应用user/app\_yield.c
+
+\begin{lstlisting}[caption={用户态应用app\_yield.c}, label={lst:app_yield}, language=C]
+    #include "../user/user_lib.h"
+    #include "../util/types.h"
+    
+    int main(void) {
+        uint64 pid = fork();
+        uint64 rounds = 0xffff;
+        if (pid == 0) {
+            printu("Child: Hello world! \n");
+            for (uint64 i = 0; i < rounds; ++i) {
+                if (i % 10000 == 0) {
+                    printu("Child running %ld \n", i);
+                    yield();
+                }
+            }
+        } else {
+            printu("Parent: Hello world! \n");
+            for (uint64 i = 0; i < rounds; ++i) {
+                if (i % 10000 == 0) {
+                    printu("Parent running %ld \n", i);
+                    yield();
+                }
+            }
+        }
+    
+        exit(0);
+        return 0;
+    }
+    
+\end{lstlisting}
+
 \subsection{实验预期}
 
 \subsection{具体实现}
@@ -215,6 +337,35 @@ K210实现的RISC-V指令集版本是1.9.1，而最新的RISC-V指令集版本�
 \subsection{执行流程}
 
 \section{进程的时间片调度}
+
+给定应用user/app\_two\_long\_loops.c
+
+\begin{lstlisting}[caption={用户态应用app\_two\_long\_loops.c}, label={lst:app_two_long_loops}, language=C]
+   #include "../user/user_lib.h"
+   #include "../util/types.h"
+   
+   int main(void) {
+       uint64 pid = fork();
+       uint64 rounds = 100000000;
+       uint64 interval = 10000000;
+       uint64 a = 0;
+       if (pid == 0) {
+           printu("Child: Hello world! \n");
+           for (uint64 i = 0; i < rounds; ++i) {
+               if (i % interval == 0) printu("Child running %ld \n", i);
+           }
+       } else {
+           printu("Parent: Hello world! \n");
+           for (uint64 i = 0; i < rounds; ++i) {
+               if (i % interval == 0) printu("Parent running %ld \n", i);
+           }
+       }
+   
+       exit(0);
+       return 0;
+   }
+       
+\end{lstlisting}
 
 \subsection{实验预期}
 
