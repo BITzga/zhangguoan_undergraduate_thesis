@@ -3,10 +3,11 @@
 在本章节，我们将给出移植K210后的代理内核实验的参考实现。
 每个实验实现的阐述结构大致相同，
 先从实验预期开始，描述实验的目标和预期效果。
-然后我们会给出参考实现的代码和实现过程描述。
-最后给出实验执行流程的总结。
+最后我们会给出参考实现的代码和实现过程描述。
 
 \section{系统调用}
+
+\subsection{实验预期}
 
 给定用户态应用user/app\_helloworld.c。
 
@@ -19,10 +20,8 @@
     }   
 \end{lstlisting}
 
-\subsection{实验预期}
-
 实验的目标是PKE能够加载并成功运行它。
-实验预期是应用可以打印出“Hello world!”，并正常退出。
+实验预期是应用通过系统调用，成功打印出“Hello world!”，并正常退出。
 
 \subsection{具体实现}
 
@@ -103,6 +102,8 @@ static void handle_syscall(trapframe *tf) {
 
 \section{异常处理}
 
+\subsection{实验预期}
+
 给定用户态应用user/app\_illegal\_instruction.c
 
 \begin{lstlisting}[caption={用户态应用app\_illegal\_instruction.c}, label={lst:app_illegal_instruction}, language=C]
@@ -113,10 +114,11 @@ static void handle_syscall(trapframe *tf) {
     }
 \end{lstlisting}
 
-\subsection{实验预期}
-
-用户态程序执行了非法指令csrw。
-PKE应当能够捕获非法指令异常，并进行简单处理。
+我们可以看到，用户态程序执行了非法指令csrw。
+这个指令的执行在U模式是不被允许的，
+在U模式执行这个指令会产生非法指令异常。
+我们的实验预期是PKE能够捕获执行这个指令时产生的非法指令异常，
+并进行简单处理。
 
 \subsection{实验分析}
 
@@ -163,6 +165,9 @@ K210实现的RISC-V指令集版本是1.9.1，而最新的RISC-V指令集版本�
 \end{lstlisting}
 
 \section{定时器中断}
+
+\subsection{实验预期}
+
 给定用户态应用user/app\_long\_loop.c
 
 \begin{lstlisting}[caption={用户态应用app\_long\_loop.c}, label={lst:app_long_loop}, language=C]
@@ -178,13 +183,11 @@ K210实现的RISC-V指令集版本是1.9.1，而最新的RISC-V指令集版本�
     }
 \end{lstlisting}
 
-\subsection{实验预期}
-
 实验操作者需要初始化时钟中断，
 设置定时器中断的时间间隔，
 并且编写时钟中断处理程序。
 最终让用户程序执行循环的同时，
-打印输出定时器中断自增的次数。
+定时地打印出定时器中断自增的次数。
 
 \subsection{具体实现}
 
@@ -202,6 +205,8 @@ K210实现的RISC-V指令集版本是1.9.1，而最新的RISC-V指令集版本�
 
 \section{虚拟地址和物理地址的转换}
 
+\subsection{实验预期}
+
 给定用户态应用user/app\_helloworld\_no\_lds.c
 
 \begin{lstlisting}[caption={用户态应用app\_helloworld\_no\_lds.c}, label={lst:app_helloworld_no_lds}, language=C]
@@ -213,13 +218,49 @@ K210实现的RISC-V指令集版本是1.9.1，而最新的RISC-V指令集版本�
     }    
 \end{lstlisting}
 
-\subsection{实验预期}
+此时的用户程序是没有链接脚本文件的。
+用户程序在编译和链接时并未指定好程序中符号的地址。
+与此同时，PKE已经开启虚拟内存，
+用户进程的物理内存空间也被映射到虚拟内存上了。
+
+用户进程在调用printu时，它会通过ecall指令，切换到拥有更高特权级的S模式的内核，
+让内核完成打印输出。需要指出的是，用户进程传入内核的地址参数是虚拟地址，
+内核需要将该虚拟地址转换成物理地址才能访问字符串“Hello world!”。
+
+所以我们的实验预期是内核成功转换用户进程传入的虚拟地址，并完成打印输出。
 
 \subsection{具体实现}
 
-\subsection{执行流程}
+\begin{lstlisting}[caption={虚拟地址到物理地址的转换}, label={lst:app_virt_to_phys}, language=C]
+    ssize_t sys_user_print(const char* buf, size_t n) {
+        //buf is an address in user space on user stack,
+        //so we have to transfer it into phisical address (kernel is running in direct mapping).
+        assert( current );
+        char* pa = (char*)user_va_to_pa((pagetable_t)(current->pagetable), (void*)buf);
+        sprint(pa);
+        return 0;
+    }    
+
+    void *user_va_to_pa(pagetable_t page_dir, void *va) {
+        uint64 va0 = (uint64) va;
+        pte_t *PTE = page_walk(page_dir, va0, 0);
+        uint64 pa = 0;
+        if (PTE) {
+            pa = PTE2PA(*PTE) + (va0 & ((1 << PGSHIFT) - 1));
+            return (void *) pa;
+        } else {
+            return NULL;
+        }
+    }    
+\end{lstlisting}
+
+虚拟地址到物理地址的转换逻辑很简单，
+首先是通过调用page\_walk()函数，查找虚拟地址的页表项。
+找到页表项以后，再通过PTE2PA()函数和一些移位操作获得物理地址。
 
 \section{基本的内存管理}
+
+\subsection{实验预期}
 
 给定用户态应用user/app\_naive\_malloc.c
 
@@ -243,13 +284,42 @@ K210实现的RISC-V指令集版本是1.9.1，而最新的RISC-V指令集版本�
     }   
 \end{lstlisting}
 
-\subsection{实验预期}
+如用户程序所示，我们的PKE需要支持内存的分配和回收。
+而内存的分配逻辑在PKE中已经实现好了，我们现在还需要实现内存的回收。
+也就是实现naive\_free()函数。
+
 
 \subsection{具体实现}
 
-\subsection{执行流程}
+\begin{lstlisting}
+    uint64 sys_user_free_page(uint64 va) {
+        user_vm_unmap((pagetable_t)current->pagetable, va, PGSIZE, 1);
+        return 0;
+    }  
+    
+    void user_vm_unmap(pagetable_t page_dir, uint64 va, uint64 size, int free) {
+        if (free) {
+            pte_t *PTE = page_walk(page_dir, va, 0);
+            if (PTE != NULL) {
+                free_page(user_va_to_pa(page_dir, (void *) va));
+                *PTE = *PTE & (~PTE_V);
+            } else {
+                sprint("PTE of free page is NULL\n");
+            }
+        }
+    }    
+\end{lstlisting}
+
+内存回收的逻辑稍微复杂一些，
+我们首先是根据根页表项和虚拟地址去调用page\_walk()函数，
+得到需要回收的虚拟地址对应的页表项。
+然后我们将页表项的PTE\_V位置0，这意味着此页表项将变成无效页表项。
+与此同时，我们通过free\_page()函数将物理页面回收。
+在这里我们只考虑一个物理页。
 
 \section{栈空间不足与缺页异常}
+
+\subsection{实验预期}
 
 给定应用user/app\_sum\_sequence.c
 
@@ -272,13 +342,42 @@ K210实现的RISC-V指令集版本是1.9.1，而最新的RISC-V指令集版本�
         
 \end{lstlisting}
 
-\subsection{实验预期}
+如上代码所示，
+用户程序执行了一个递归求等差数列的函数，递归的层数是1000层。
+显然，这么深的递归层数，很容易导致栈溢出，从而导致缺页异常。
+
+所以我们的实验预期是PKE能够捕获缺页异常，
+并且能够为用户进程的栈空间进行一定的扩容。
+让该用户进程成功运行。
 
 \subsection{具体实现}
 
-\subsection{执行流程}
+\begin{lstlisting}[caption={handle\_page\_fault}, label={lst:handle_page_fault}, language=C]
+    void handle_user_page_fault(uint64 mcause, uint64 sepc, uint64 stval) {
+        sprint("handle_page_fault: %lx\n", stval);
+        switch (mcause) {
+            case CAUSE_STORE_PAGE_FAULT:
+                if (stval < USER_STACK_TOP 
+                        && (stval - USER_STACK_TOP) >= 20 * (STACK_SIZE)) {
+                    user_vm_map((pagetable_t) current->pagetable,
+                                    stval - stval % PGSIZE, 
+                                    PGSIZE, 
+                                    (uint64) alloc_page(),
+                                    prot_to_type(PROT_WRITE | PROT_READ, 1));
+                } else {
+                    panic("handle_page_fault: stack overflow\n");
+                }
+                break;
+            default:
+                sprint("unknown page fault.\n");
+                break;
+        }
+    }    
+\end{lstlisting}
 
 \section{创建子进程fork的实现}
+
+\subsection{实验预期}
 
 给定应用user/app\_naive\_fork.c
 
@@ -299,15 +398,29 @@ K210实现的RISC-V指令集版本是1.9.1，而最新的RISC-V指令集版本�
        
 \end{lstlisting}
 
-\subsection{实验预期}
-
-\subsection{兼容K210与改进}
+如用户代码所示，PKE需要创建一个用户进程的子进程，然后调度运行两者。
 
 \subsection{具体实现}
 
-\subsection{执行流程}
+如下所示，我们在kernel/process.c中补全了do\_fork()函数。
+
+\begin{lstlisting}[caption={do\_fork}, label={lst:do_fork}, language=C]
+    //                panic("You need to implement the code segment mapping of child in lab3_1.\n");
+    for (int j = 0; j < parent->mapped_info[i].npages; j++) {
+        map_pages(child->pagetable, 
+                    parent->mapped_info[i].va + j * PGSIZE, 
+                    (uint64) _etext - USER_PROGRAM_ENTRY,
+                    USER_PROGRAM_ENTRY, 
+                    prot_to_type(PROT_WRITE | PROT_READ | PROT_EXEC, 1));
+
+        sprint("do_fork map code segment at pa:%lx of parent to child at va:%lx.\n",
+               USER_PROGRAM_ENTRY, parent->mapped_info[i].va + j * PGSIZE);
+    }    
+\end{lstlisting}
 
 \section{进程的控制权交接}
+
+\subsection{实验预期}
 
 给定应用user/app\_yield.c
 
@@ -342,13 +455,31 @@ K210实现的RISC-V指令集版本是1.9.1，而最新的RISC-V指令集版本�
     
 \end{lstlisting}
 
-\subsection{实验预期}
+如用户代码所示，父子进程都轮流执行了yield()函数。
+yield()函数是一个可以交出进程自己的CPU执行权的函数。
+yield()函数是由PKE内核实现的系统调用功能之一。
+
+我们的实验预期是，父子进程之间的调度是可以交替的，
+也就是说父子进程之间需要轮流打印出他们对应的字符串。
 
 \subsection{具体实现}
 
-\subsection{执行流程}
+如下，本文给出了yield()函数的实现。实现逻辑较为简单，就不再具体阐述了。
+
+\begin{lstlisting}[caption={yield}, label={lst:yield}, language=C]
+    ssize_t sys_user_yield() {
+        assert(current);
+        current->status = READY;
+        insert_to_ready_queue(current);
+        schedule();
+    
+        return 0;
+    }    
+\end{lstlisting}
 
 \section{进程的时间片调度}
+
+\subsection{实验预期}
 
 给定应用user/app\_two\_long\_loops.c
 
@@ -379,17 +510,89 @@ K210实现的RISC-V指令集版本是1.9.1，而最新的RISC-V指令集版本�
        
 \end{lstlisting}
 
-\subsection{实验预期}
+如上代码所示，
+我们的用户父子进程不再主动调用yield()函数交出自己的CPU执行权。
+而是由PKE内核利用时间片轮询的方式来调度父子进程，
+定时地切换父子进程的执行权。
+
+所以我们的实验预期是，完成PKE内核中时间片调度进程的实现，
+并让父子进程交替执行。
 
 \subsection{具体实现}
 
-\subsection{执行流程}
+\begin{lstlisting}[caption={时间片调度}, label={lst:time_slice}, language=C]
+    void smode_trap_handler(void) {
+        assert(current);
+        current->trapframe->epc = read_csr(sepc);
+        uint64 cause = read_csr(scause);
+    
+        switch (cause) {
+            case CAUSE_STIMER_S_TRAP:
+                handle_stimer_trap();
+                rrsched();
+                break;
+            default:
+                //......省略展示此部分代码......
+        }
+        switch_to(current);
+    }
 
-\section{实验资料的编写及管理}
+    void rrsched() {
+        assert(current);
+        if (current->tick_count < TIME_SLICE_LEN) {
+            current->tick_count++;
+        } else {
+            current->tick_count = 0;
+            current->status = READY;
+            insert_to_ready_queue(current);
+            schedule();
+        }
+    }    
+\end{lstlisting}
 
-\subsection{实验指导书的编写}
+时间片调度进程的实现，是通过设置定时器中断，
+当S模式的PKE拦截到定时器中断时，
+就会执行中断处理程序，处理程序其中就包括了进程的切换。
 
-\subsection{实验指导书的管理}
+\section{实验资料的管理}
 
-\subsection{对应代码库的管理}
-你好
+在我们移植实验的过程中，我们使用了git来管理PKE移植的代码，
+并且将移植后的代码放置在了GitHub仓库中。GitHub的仓库链接如下：
+
+\href{https://github.com/BITzga/riscv64-pke-k210}{https://github.com/BITzga/riscv64-pke-k210}。
+
+此代码库包含18个主要分支，其中有9个分支是PKE移植前的代码分支，
+这9个分支的代码保持不变，没有受到修改，是移植前的基础分支，
+也可以供我们进行移植前后的代码比较。
+
+此外还有另外9个k210前缀的分支。他们是移植后的代码分支，均已通过功能测试
+，都可以被烧录和运行在K210上, 并且可以达到实验预期效果。
+
+\begin{lstlisting}[caption={分支列表}, label={lst:branch_list_1}]
+    remotes/origin/k210/lab1_1_syscall
+    remotes/origin/k210/lab1_2_exception
+    remotes/origin/k210/lab1_3_irq
+    remotes/origin/k210/lab2_1_pagetable
+    remotes/origin/k210/lab2_2_allocatepage
+    remotes/origin/k210/lab2_3_pagefault
+    remotes/origin/k210/lab3_1_fork
+    remotes/origin/k210/lab3_2_yield
+    remotes/origin/k210/lab3_3_rrsched
+    remotes/origin/lab1_1_syscall
+    remotes/origin/lab1_2_exception
+    remotes/origin/lab1_3_irq
+    remotes/origin/lab2_1_pagetable
+    remotes/origin/lab2_2_allocatepage
+    remotes/origin/lab2_3_pagefault
+    remotes/origin/lab3_1_fork
+    remotes/origin/lab3_2_yield
+    remotes/origin/lab3_3_rrsched
+\end{lstlisting}
+
+此外，我们在移植开发工作完成以后，
+还编写了相关的实验指导书，并放置在了gitbook上。
+由于时间关系，我们的实验指导书的并没有达到很高的完成程度，
+后续我们将对其进行完善。
+这里我们先给出实验指导书的gitbook链接：
+
+\href{https://1621184422.gitbook.io/pke-k210-tutorial}{https://1621184422.gitbook.io/pke-k210-tutorial}
