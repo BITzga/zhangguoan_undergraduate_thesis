@@ -180,13 +180,25 @@ K210实现的RISC-V指令集版本是1.9.1，而最新的RISC-V指令集版本�
 
 \subsection{实验预期}
 
-
-
-\subsection{实验改进}
+实验操作者需要初始化时钟中断，
+设置定时器中断的时间间隔，
+并且编写时钟中断处理程序。
+最终让用户程序执行循环的同时，
+打印输出定时器中断自增的次数。
 
 \subsection{具体实现}
 
-\subsection{执行流程}
+\begin{lstlisting}[caption={定时器中断处理程序}, label={lst:app_timer_handler}, language=C]
+
+    //时钟初始化部分已在kernel.c中的s_start()中完成。
+    void handle_stimer_trap() {
+        sprint("Ticks %d\n", ++g_ticks);
+        clock_set_next_event();
+    }    
+\end{lstlisting}
+
+我们的实现逻辑很简单，就是让定时器中断的次数自增，并打印输出。
+然后设置下一次定时器中断的时间。
 
 \section{虚拟地址和物理地址的转换}
 
