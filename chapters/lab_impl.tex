@@ -7,12 +7,8 @@
 最后给出实验执行流程的总结。
 
 \section{系统调用}
-你好
-\subsection{实验预期}
 
 给定用户态应用user/app\_helloworld.c。
-实验的目标是PKE能够加载并成功运行它。
-实验预期是应用可以打印出“Hello world!”，并正常退出。
 
 \begin{lstlisting}[caption={用户态应用app\_helloworld.c}, label={lst:app_helloworld}, language=C]
     #include "user_lib.h"
@@ -22,6 +18,11 @@
         exit(0);
     }   
 \end{lstlisting}
+
+\subsection{实验预期}
+
+实验的目标是PKE能够加载并成功运行它。
+实验预期是应用可以打印出“Hello world!”，并正常退出。
 
 \subsection{具体实现}
 
@@ -68,20 +69,98 @@ static void handle_syscall(trapframe *tf) {
 }
 \end{lstlisting}
 
-\begin{figure}[h]
-    \vspace{13pt} % 调整图片与上文的垂直距离
-    \centering
-    \includegraphics[width=0.9\textwidth]{images/labs/lab1.png}
-    \caption{lab1实验结果}\label{lab1实验结果} % label 用来在文中索引
-\end{figure}
+将实验要求实现后，我们可以在K210上运行实验代码，得到如下结果。
 
-将实验要求实现后，我们可以在K210上运行实验代码，得到如下结果：
+\begin{lstlisting}[caption={lab1实验结果}, label={lst:lab1_result}]
+    [rustsbi] Version 0.1.0
+    .______       __    __      _______.___________.  _______..______   __
+    |   _  \     |  |  |  |    /       |           | /       ||   _  \ |  |
+    |  |_)  |    |  |  |  |   |   (----`---|  |----`|   (----`|  |_)  ||  |
+    |      /     |  |  |  |    \   \       |  |      \   \    |   _  < |  |
+    |  |\  \----.|  `--'  |.----)   |      |  |  .----)   |   |  |_)  ||  |
+    | _| `._____| \______/ |_______/       |__|  |_______/    |______/ |__|
+    
+    [rustsbi] Platform: K210
+    [rustsbi] misa: RV64ACDFIMSU
+    [rustsbi] mideleg: 0x222
+    [rustsbi] medeleg: 0x1ab
+    [rustsbi] Kernel entry: 0x80020000
+    Enter supervisor mode...
+    
+    Application program entry point (virtual address): 0x00000000800206b2
+    
+    Switch to user mode...
+    
+    Hello world!
+    
+    User exit with code:0.
+    
+    System is shutting down with exit code 0.
+    
+    [rustsbi] todo: shutdown all harts on k210; program halt
+        
+\end{lstlisting}
 
 \section{异常处理}
 
+给定用户态应用user/app\_illegal\_instruction.c
+
+\begin{lstlisting}[caption={用户态应用app\_illegal\_instruction.c}, label={lst:app_illegal_instruction}, language=C]
+    int main(void) {
+        printu("Going to hack the system by running privilege instructions.\n");
+        asm volatile("csrw sscratch, 0");
+        exit(0);
+    }
+\end{lstlisting}
+
 \subsection{实验预期}
 
+用户态程序执行了非法指令csrw。
+PKE应当能够捕获非法指令异常，并进行简单处理。
+
 \subsection{实验分析}
+
+由于RustSBI-K210支持包对K210进行了兼容性的处理。
+K210实现的RISC-V指令集版本是1.9.1，而最新的RISC-V指令集版本是1.11.0。
+为了能让K210能够运行高版本的RISC-V指令，
+该支持包捕获了高版本指令产生的异常，然后将其转换为低版本的指令。
+这种机制使得我们可以在K210上运行最新版的RISC-V指令。
+
+为了保持这种兼容性，指令异常只能由M模式的RustSBI处理，
+我们不能将指令异常托管给S模式的PKE。
+所以此次实验，我们没有办法在PKE中完成，
+只能交给RustSBI处理。
+所幸，RustSBI已经实现了非法指令的捕获与处理，
+当用户程序执行非法指令时，RustSBI会捕获异常，
+并且产生panic，输出panic信息。这和原来实验的预期是一致的。
+
+此次实验不需要我们改动PKE代码，就可以得到预期效果：
+
+\begin{lstlisting}[caption={lab2实验结果}, label={lst:app_illegal_instruction_result}]
+    [rustsbi] Version 0.1.0
+    .______       __    __      _______.___________.  _______..______   __
+    |   _  \     |  |  |  |    /       |           | /       ||   _  \ |  |
+    |  |_)  |    |  |  |  |   |   (----`---|  |----`|   (----`|  |_)  ||  |
+    |      /     |  |  |  |    \   \       |  |      \   \    |   _  < |  |
+    |  |\  \----.|  `--'  |.----)   |      |  |  .----)   |   |  |_)  ||  |
+    | _| `._____| \______/ |_______/       |__|  |_______/    |______/ |__|
+    
+    [rustsbi] Platform: K210
+    [rustsbi] misa: RV64ACDFIMSU
+    [rustsbi] mideleg: 0x222
+    [rustsbi] medeleg: 0x1ab
+    [rustsbi] Kernel entry: 0x80020000
+    Enter supervisor mode...
+    
+    Application program entry point (virtual address): 0x0000000080020788
+    
+    Switch to user mode...
+    
+    Going to hack the system by running privilege instructions.
+    
+    [rustsbi] panicked at 'invalid instruction, mepc: 0000000080020798, instruction: 14005073', platform/k210/src/main.rs:522:17
+        
+\end{lstlisting}
 
 \section{定时器中断}
 
