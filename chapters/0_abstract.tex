@@ -84,7 +84,8 @@ This part allows students to learn the algorithm,
 engineering implementation and design idea of the operating system in practice.
 
 The RISC-V Proxy Kernel is an operating system without independent I/O implementation.
-It is designed to support tethered RISC-V implementations with limited I/O capability and thus handles I/O-related system calls by proxying them to a host computer.
+It is designed to support RISC-V CPU without I/O capability.
+It delegates I/O to a host computer for handling I/O calls.
 It has the advantages of light weight and simplified code.
 
 This paper is based on the transplantation and improvement of the Proxy Kernel operating system experiment of Huazhong University of Science and Technology.
