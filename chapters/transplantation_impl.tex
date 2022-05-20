@@ -50,6 +50,8 @@ qemu就是用了OpenSBI为RISC-V提供了环境支持。
 
     除此之外，RustSBI实现了SBI标准的绝大部分要求，它可以提供运行时服务，
     如SBI PUTCHAR，向串口输出信息、SBI SHUTDOWN，关闭所有硬件线程的运行。
+    RustSBI是使用Rust实现的，Rust的语言特性会保证RustSBI具有性能安全，不会发生内存泄漏。
+    因此，RustSBI是性能安全的。\cite{FSK2014The}
 
     \item RustSBI可以兼容K210旧版指令集
 
@@ -85,7 +87,8 @@ RustSBI-K210的支持包是bin文件，它需要一起打包到内核程序中�
 接下来本文将详细阐述这俩方面的改造过程。
 
 \subsection{内存布局改造}
-由于我们引入了RustSBI，RustSBI需要占用0x80000000-0x8001FFFF的物理内存空间。所以，内核的程序入口点由此发生了变化。我们需要修改内核lds文件，更改了程序的入口点以保证内核可以正常运行。
+由于我们引入了RustSBI，RustSBI需要占用0x80000000-0x8001FFFF的物理内存空间。
+所以，内核的程序入口点由此发生了变化。我们需要修改内核lds文件，更改了程序的入口点以保证内核可以正常运行。
 
 首先，我们现在mentry.S中加入以下两行代码，用以确保\_mentry是内核的程序入口点。
 
@@ -266,7 +269,7 @@ RustSBI将控制权交接给内核->内核运行
 
 PKE已有代码对spike提供的HTIF（Host-Target InterFace）接口存在依赖。
 当PKE需要打印字符串到屏幕、访问主机上的文件或设备时会调用HTIF相关接口。
-PKE通过HTIF接口调用Linux对应接口，进而实现访问外部设备的功能。
+PKE通过HTIF接口调用Linux对应接口，进而实现访问外部设备的功能。\cite{2019Porting}
 
 如果需要在K210上维持和原先PKE在spike模拟器一样的环境。
 K210板子要同时运行PKE和Linux两个内核程序，还要提供spike模拟器类似的与Linux访问的HTIF接口。

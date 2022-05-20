@@ -54,7 +54,7 @@
 最终运行在FPGA上的RISC-V CPU软核上。
 与此同时，Zedboard开发板上的ARM物理核运行着ARM版本的Ubuntu操作系统。
 代理内核通过Zedboard上的HTIF接口调用Ubuntu的I/O接口，以达到I/O的目的。
-这种设计下，我们不需要实现CPU的I/O功能，我们可以快速对RISC-V CPU软核进行验证。
+这种设计下，我们不需要实现CPU的I/O功能，我们可以快速对RISC-V CPU软核进行验证。\cite{郭勇2019RISC}
 
 \subsection{代理内核实验的基本介绍}
 
@@ -84,14 +84,14 @@ RISC-V指令集是一种新型的开放和精简指令集。
 它是一个精简的指令集。RISC-V手册指出，
 同样的C语言程序，经过适用于不同CPU架构的编译器编译后，
 得到的指令序列中，RISC-V架构的指令是相对来说数量较少、较精简的。
-这对减少嵌入式设备功耗具有重要的意义。
+这对减少嵌入式设备功耗具有重要的意义。\cite{2014The}
 
 \subsection{RISC-V的特权架构}
 
 RISC-V的特权架构主要分为三种模式：
 机器模式（Machine-mode）、
 监管者模式（Supervisor-mode）、
-用户模式（User-mode）。
+用户模式（User-mode）。\cite{2015The}
 
 M模式是拥有最高级权限的模式，M模式的硬件线程完全掌控着寄存器、内存、I/O的控制权。
 M模式具备拦截和处理异常与中断的能力。除此之外，它还可以将异常与中断托管给S模式。
@@ -136,7 +136,7 @@ M层的内核只需要在初始化时，根据异常、中断的状态码值，
     \caption{K210 MCU}\label{K210 MCU} % label 用来在文中索引
 \end{figure}
 
-K210是由嘉楠公司推出的一款MCU，它具有成本低、高性能、性价比高等特点。
+K210是由嘉楠公司推出的一款MCU，它具有成本低、高性能、性价比高等特点。\cite{2018嘉楠科技勘智}
 
 K210拥有基于RISC-V架构、64位的双核CPU。它具有6MB物理内存，它的晶振频率是400-600MHZ。
 除此之外，它拥有嘉楠自研的神经网络计算加速器KPU，可以进行高性能的神经网络计算。
@@ -159,7 +159,7 @@ ucore是清华大学基于MIT开源的xv6内核开发的操作系统内核，
 
 \subsection{MIT xv6在K210的移植}
 
-MIT的Frans Kaashoek等在2006年参考PDP-11上的UNIX Version 6写了一个可在X86上跑的操作系统xv6（基于MIT License）
+MIT的Frans Kaashoek等在2006年参考PDP-11上的UNIX Version 6写了一个可在X86上跑的操作系统xv6（基于MIT License）\cite{张治国2020Xv6}
 
 华科的操作系统团队完成了xv6从X86物理机到RISC-V物理机的移植，
 最终让xv6成功运行在K210上。

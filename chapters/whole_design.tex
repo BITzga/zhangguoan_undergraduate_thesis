@@ -31,7 +31,7 @@ PKE就通过调用spike提供的HTIF接口，
 PYNQ-Z2开发板是Xilinx公司的一款开发板，
 它具有丰富的外设资源、强大的性能。此外，它还兼容了Arduino和树莓派接口。
 
-PYNQ-Z2搭载了FPGA系统和ARM处理器。FPGA可以烧录RISC-V CPU软核，
+PYNQ-Z2搭载了FPGA系统和ARM处理器。\cite{2019Research}FPGA可以烧录RISC-V CPU软核，
 ARM硬核可以运行Ubuntu操作系统。我们的代理内核PKE运行在RISC-V CPU软核上，
 而提供外设功能的Ubuntu则运行在ARM硬核上。
 PKE和Ubuntu之间是通过riscv-fesvr通信的。
@@ -76,7 +76,7 @@ ARM硬核可以运行Ubuntu操作系统，提供I/O功能。
 这对于刚入门操作系统实验学习的开发者是不利的。
 
 总而言之，PKE系统的物理环境价格昂贵、成本高昂、搭建成本高、学习成本高，
-不利于学习者入门，也不利于大规模展开实验教学。
+不利于学习者入门，也不利于大规模展开实验教学。\cite{2021Reform}
 这些是PKE移植前的物理环境的痛点。
 为了解决这些痛点，本文提出了将PKE移植到K210上的方案。将在下一小节阐述该方案的收益。
 
