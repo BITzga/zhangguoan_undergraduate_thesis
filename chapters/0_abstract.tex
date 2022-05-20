@@ -37,13 +37,25 @@
 \setlength{\parskip}{0em}
 
 % 中文摘要正文从这里开始
-本文……。
+操作系统课程是计算机专业的重要专业基础课，
+其对于培养学生的工程能力与设计能力有着很大的意义。
+而操作系统实验部分更是课程的核心内容，
+该部分可以让学生在实践中学习操作系统的算法、工程实现、设计思想。
 
-\textcolor{blue}{摘要正文选用模板中的样式所定义的“正文”，每段落首行缩进 2 个字符；或者手动设置成每段落首行缩进 2 个汉字，字体：宋体，字号：小四，行距：固定值 22 磅，间距：段前、段后均为 0 行。阅后删除此段。}
+代理内核是不具备独立I/O实现的操作系统内核，
+它的提出了为了支持受到I/O限制的RISC-V CPU。
+它的所依赖的I/O功能都代理给了宿主机上的操作系统。
+它具有轻量、代码精简的优点。
 
-\textcolor{blue}{摘要是一篇具有独立性和完整性的短文，应概括而扼要地反映出本论文的主要内容。包括研究目的、研究方法、研究结果和结论等，特别要突出研究结果和结论。中文摘要力求语言精炼准确，本科生毕业设计（论文）摘要建议 300-500 字。摘要中不可出现参考文献、图、表、化学结构式、非公知公用的符号和术语。英文摘要与中文摘要的内容应一致。阅后删除此段。}
+本文是基于华中科技大学的代理内核操作系统实验的移植和改进。
+本文从源代码层面，经济成本与学习成本方面，
+分析了代理内核实验在教学过程中存在的优点与缺点。
+对于其目前存在的经济成本高、环境搭建复杂等缺点，本文提出了实验改进的需求。
+然后进行需求分析，并给出了移植到K210开发板上的解决方案。
+最后本文给出了移植代理内核操作系统实验到K210开发板上的具体实现，
+并编写了相关的实验指导书。完成了对代理内核操作系统实验的移植与改进。
 
-\vspace{4ex}\noindent\textbf{\heiti 关键词：北京理工大学；本科生；毕业设计（论文）}
+\vspace{4ex}\noindent\textbf{\heiti 关键词：操作系统；内核；代理内核；实验改进；K210；移植}
 \newpage
 
 % 英文摘要章节
@@ -65,9 +77,23 @@
 \setlength{\parskip}{0em}
 
 % 英文摘要正文从这里开始
-In order to study……
+The operating system course is an important professional course for the students major in Computer Science,
+It is of great significance to develop students' engineering ability and design ability.
+The operating system experiment is the core content of the course,
+This part allows students to learn the algorithm, 
+engineering implementation and design idea of the operating system in practice.
 
-\textcolor{blue}{Abstract 正文设置成每段落首行缩进 2 字符，字体：Times New Roman，字号：小四，行距：固定值 22 磅，间距：段前、段后均为 0 行。阅后删除此段。}
+The RISC-V Proxy Kernel is an operating system without independent I/O implementation.
+It is designed to support tethered RISC-V implementations with limited I/O capability and thus handles I/O-related system calls by proxying them to a host computer.
+It has the advantages of light weight and simplified code.
 
-\vspace{3ex}\noindent\textbf{Key Words: BIT； Undergraduate； Graduation Project (Thesis)}
+This paper is based on the transplantation and improvement of the Proxy Kernel operating system experiment of Huazhong University of Science and Technology.
+From the perspective of source code, economic cost and learning cost,
+we analyze the advantages and disadvantages of Proxy Kernel experiment in the teaching process.
+This paper puts forward the disadvantages of high cost and complex experimental environment.
+Then the requirements analysis is carried out, and the solution which transplanted PKE to K210 development board is given.
+Finally, this paper gives the concrete implementation of the solution,
+and then gives the tutorial of the experiment.
+
+\vspace{3ex}\noindent\textbf{Key Words: Operating System；Proxy Kernel；Improvement；K210；Transplantation}
 \newpage
