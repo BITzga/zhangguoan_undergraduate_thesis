@@ -55,7 +55,7 @@ riscv-fesvr通过共享内存的方式，接收PKE的请求，使用ARM端的资
 在原先的物理环境中，代理内核的系统是运行在PYNQ-Z2板子上的。
 PYNQ-Z2拥有FPGA和ARM物理核。FPGA可以让开发者烧录RISC-V CPU软核，
 然后让开发者在RISC-V CPU软核上运行PKE。
-ARM硬核可以运行Ubuntu操作系统，提供I/O功能。
+ARM硬核可以运行Ubuntu操作系统，提供I/O功能。\cite{1996Computer}
 
 从不同的开发方向看。
 如果开发者是在开发CPU软核，
@@ -300,7 +300,7 @@ K210支持模块是对驱动程序的封装，它为PKE提供了简单易用的�
 其他模块与移植前的PKE相比，功能大致相同，这里就不再赘述了。
 
 PKE之外还有烧录工具K-Flash、串口通讯工具minitem。
-K-Flash是一个Python程序，它帮助我们将打包好的内核烧录到K210。
+K-Flash是一个Python程序，它帮助我们将打包好的内核烧录到K210。\cite{2002Flash}
 minitem是一个串口通讯工具，它可以接收K210串口输出信息，
 并将信息显示在我们的上位机上。
 

@@ -130,7 +130,7 @@ RustSBI-K210的支持包是bin文件，它需要一起打包到内核程序中�
 
 由于我们需要引入RustSBI，并需要将其打包进入内核。
 除此之外，还需要将内核烧录到K210，并与K210进行串口通讯。
-现有的Makefile并不支持这些工作。因此，我们需要修改MakeFile。
+现有的Makefile并不支持这些工作。因此，我们需要修改MakeFile。\cite{Ma2006Analyse}
 
 \begin{lstlisting}[caption={修改Makefile}, label={lst:change_makefile}]
     $(KERNEL_K210_TARGET): $(KERNEL_TEMP_TARGET) $(BOOTLOADER)
