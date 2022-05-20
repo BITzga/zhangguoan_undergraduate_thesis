@@ -7,7 +7,7 @@
 
 移植K210时，PKE需要依赖SBI（Supervisor Binary Interface）提供Bootloader和RUNTIME功能，所以烧录内核时需要带上SBI固件。
 通过调研发现，OpenSBI与RustSBI（用Rust语言实现的SBI）均按照SBI标准实现。这两种也是业内使用最多的开源SBI。
-qemu就是用了OpenSBI为RISC-V提供了环境支持。
+qemu就使用了OpenSBI为RISC-V提供了环境支持。
 此外，RustSBI还对K210做了特殊支持。
 所以目前暂定使用RustSBI当作SBI固件，为PKE提供Bootloader功能和RUNTIME运行时服务。
 移植过程中我们不需要关心RustSBI的具体实现，只需要根据SBI标准调用其接口即可。
@@ -40,18 +40,18 @@ qemu就是用了OpenSBI为RISC-V提供了环境支持。
     \end{lstlisting}
 
     由于需要兼容K210上的旧版RISC-V指令集，
-    RustSBI-K210实现无法将指令异常托管给S层的PKE。
+    RustSBI-K210无法将指令异常的处理托管给S层的PKE。
     所以我们不能轻易改动RustSBI-K210关于指令异常的逻辑。
 
     \item RustSBI可以提供Bootloader功能与运行时服务
     
-    RustSBI在完成初始化工作后，会跳转的0x80020000处，
+    RustSBI在完成初始化工作后，会跳转到0x80020000处，
     进入S模式，将控制权交给PKE。
 
     除此之外，RustSBI实现了SBI标准的绝大部分要求，它可以提供运行时服务，
     如SBI PUTCHAR，向串口输出信息、SBI SHUTDOWN，关闭所有硬件线程的运行。
-    RustSBI是使用Rust实现的，Rust的语言特性会保证RustSBI具有性能安全，不会发生内存泄漏。
-    因此，RustSBI是性能安全的。\cite{FSK2014The}
+    RustSBI是使用Rust实现的，Rust的语言特性会保证RustSBI具有安全的性能，不会发生内存泄漏。
+    因此，RustSBI的性能是安全的。\cite{FSK2014The}
 
     \item RustSBI可以兼容K210旧版指令集
 
@@ -90,7 +90,7 @@ RustSBI-K210的支持包是bin文件，它需要一起打包到内核程序中�
 由于我们引入了RustSBI，RustSBI需要占用0x80000000-0x8001FFFF的物理内存空间。
 所以，内核的程序入口点由此发生了变化。我们需要修改内核lds文件，更改了程序的入口点以保证内核可以正常运行。
 
-首先，我们现在mentry.S中加入以下两行代码，用以确保\_mentry是内核的程序入口点。
+首先，我们先在mentry.S中加入以下两行代码，用以确保\_mentry是内核程序的入口点。
 
 \begin{lstlisting}[caption={修改内核程序入口点}, label={lst:change_kernel_entry}]
     .globl _mentry
@@ -160,7 +160,7 @@ bs=128k意味着输入/输出的block大小为128k，seek=1意味着跳过第零
 
 2.烧录
 
-用数据线将K210与上位机连接，再使用kflash，指定好相关参数即可完成烧录。
+用数据线将K210与上位机连接，再使用K-Flash，指定好相关参数即可完成烧录。
 
 \begin{lstlisting}[caption={烧录}, label={lst:burn}]
     $(PYTHON) compile_tool/kflash.py -p $(PORT) -b 1500000 $(KERNEL_K210_TARGET)
@@ -172,7 +172,7 @@ bs=128k意味着输入/输出的block大小为128k，seek=1意味着跳过第零
     $(TERM) --eol LF --dtr 0 --rts 0 --filter direct $(PORT) 115200
 \end{lstlisting}
 
-打开miniterm,接收K210的串口打印输出。
+打开miniterm，接收K210的串口打印输出。
 
 4.总结
 
@@ -272,7 +272,7 @@ PKE已有代码对spike提供的HTIF（Host-Target InterFace）接口存在依�
 PKE通过HTIF接口调用Linux对应接口，进而实现访问外部设备的功能。\cite{2019Porting}
 
 如果需要在K210上维持和原先PKE在spike模拟器一样的环境。
-K210板子要同时运行PKE和Linux两个内核程序，还要提供spike模拟器类似的与Linux访问的HTIF接口。
+K210需要同时运行PKE和Linux两个内核程序，还要提供spike模拟器类似的与Linux访问的HTIF接口。
 这样的移植方案的开发成本会很高。并且收益不大。
 
 所以移植PKE到K210时，我们需要移除PKE对HTIF的依赖，自行实现其依赖功能，编写相关代码。
@@ -340,7 +340,7 @@ PKE中是使用MMIO（memory mapping IO）来设置定时中断。
     }
 \end{lstlisting}
 
-有了串口输出的方法，接下来我们需要格式化输出sprint.sprint定义在spike\_utils.c,接下来我们看看sprint的代码实现。
+有了串口输出的方法，接下来我们需要格式化输出sprint。sprint定义在spike\_utils.c，接下来我们看看sprint的代码实现。
 
 \begin{lstlisting}[language=C, caption={sprint实现代码}, label={lst:sprint} ]
     void sprint(char *buf, const char *fmt, ...) {
@@ -394,7 +394,7 @@ sprint函数的第一个参数对应了一个字符串的起始地址，第二�
 
 \subsubsection{文件系统相关接口}
 
-由于文件系统的开发成本较高，加上时间不足，我们暂时未实现文件系统。
+由于文件系统的开发成本较高，开发时间不足等原因，我们暂时未实现文件系统。
 我们采用了内存加载的方式加载用户进程。
 
 \subsubsection{Device Tree相关接口}
@@ -433,7 +433,7 @@ do\_panic->shutdown->frontend\_syscall
 既然是需要调用spike的HTIF，与spike的HTIF具有依赖关系，那么我们移植的时候就需要去除相关依赖，自行实现do\_panic函数。
 
 通过观察panic和poweroff功能，很容易发现，他们都是打印报错信息，然后终止了硬件线程（hart）。
-那么我们可以通过调用SBI的shutdown接口来实现这两个接口，打印报错以后以后，终止所有的hart。
+那么我们可以通过调用SBI的shutdown接口来实现这两个接口，打印报错以后，终止所有的hart。
 
 \subsubsection{定时器接口}
 
