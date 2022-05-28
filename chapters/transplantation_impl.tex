@@ -18,61 +18,58 @@ qemu就使用了OpenSBI为RISC-V提供了环境支持。
 
 \subsection{RustSBI的特性介绍}
 
-\begin{enumerate}
-    \item RustSBI可以进行中断和异常委托
+1.RustSBI可以进行中断和异常委托
     
-    RustSBI在M模式下初始化时，会通过硬编码的方式将部分中断和异常委托给PKE。
-    而剩余部分则由RustSBI自行处理，例如指令异常的处理。
+RustSBI在M模式下初始化时，会通过硬编码的方式将部分中断和异常委托给PKE。
+而剩余部分则由RustSBI自行处理，例如指令异常的处理。
 
-    \begin{lstlisting}[caption={RustSBI的中断和异常委托}, label={lst:rustsbi_interrupt_and_exception}]
-    // 委托终端；把S的中断全部委托给S层
-    fn delegate_interrupt_exception() {
-        use riscv::register::{medeleg, mideleg, mie};
-        unsafe {
-            mideleg::set_stimer();
-            mideleg::set_ssoft();
-            medeleg::set_instruction_misaligned();
-            medeleg::set_breakpoint();
-            medeleg::set_user_env_call();
-            mie::set_msoft();
-        }
+\begin{lstlisting}[caption={RustSBI的中断和异常委托}, label={lst:rustsbi_interrupt_and_exception}]
+// 委托终端；把S的中断全部委托给S层
+fn delegate_interrupt_exception() {
+    use riscv::register::{medeleg, mideleg, mie};
+    unsafe {
+        mideleg::set_stimer();
+        mideleg::set_ssoft();
+        medeleg::set_instruction_misaligned();
+        medeleg::set_breakpoint();
+        medeleg::set_user_env_call();
+        mie::set_msoft();
     }
-    \end{lstlisting}
+}
+\end{lstlisting}
 
-    由于需要兼容K210上的旧版RISC-V指令集，
-    RustSBI-K210无法将指令异常的处理托管给S层的PKE。
-    所以我们不能轻易改动RustSBI-K210关于指令异常的逻辑。
+由于需要兼容K210上的旧版RISC-V指令集，
+RustSBI-K210无法将指令异常的处理托管给S层的PKE。
+所以我们不能轻易改动RustSBI-K210关于指令异常的逻辑。
 
-    \item RustSBI可以提供Bootloader功能与运行时服务
+2.RustSBI可以提供Bootloader功能与运行时服务
     
-    RustSBI在完成初始化工作后，会跳转到0x80020000处，
-    进入S模式，将控制权交给PKE。
+RustSBI在完成初始化工作后，会跳转到0x80020000处，
+进入S模式，将控制权交给PKE。
 
-    除此之外，RustSBI实现了SBI标准的绝大部分要求，它可以提供运行时服务，
-    如SBI PUTCHAR，向串口输出信息、SBI SHUTDOWN，关闭所有硬件线程的运行。
-    RustSBI是使用Rust实现的，Rust的语言特性会保证RustSBI具有安全的性能，不会发生内存泄漏。
-    因此，RustSBI的性能是安全的\cite{FSK2014The}。
+除此之外，RustSBI实现了SBI标准的绝大部分要求，它可以提供运行时服务，
+如SBI PUTCHAR，向串口输出信息、SBI SHUTDOWN，关闭所有硬件线程的运行。
+RustSBI是使用Rust实现的，Rust的语言特性会保证RustSBI具有安全的性能，不会发生内存泄漏。
+因此，RustSBI的性能是安全的\cite{FSK2014The}。
 
-    \item RustSBI可以兼容K210旧版指令集
+3.RustSBI可以兼容K210旧版指令集
 
-    RustSBI在K210兼容了高版本的指令。
-    K210实现的RISC-V指令集是1.9.1标准的。目前最新的特权级标准已经达到1.11。
-    如果我们的内核代码里有用到更高级的RISC-V汇编指令，可能会在K210上无法运行。
-    这种情况下，就要改动内核的代码，会带来许多工作量。
-    因此，使用RustSBI可以使我们免去处理RISC-V汇编版本的麻烦。
+RustSBI在K210兼容了高版本的指令。
+K210实现的RISC-V指令集是1.9.1标准的。目前最新的特权级标准已经达到1.11。
+如果我们的内核代码里有用到更高级的RISC-V汇编指令，可能会在K210上无法运行。
+这种情况下，就要改动内核的代码，会带来许多工作量。
+因此，使用RustSBI可以使我们免去处理RISC-V汇编版本的麻烦。
 
-    \item RustSBI可以兼容不同的RISC-V开发板
+4.RustSBI可以兼容不同的RISC-V开发板
     
-    使用RustSBI，我们可以屏蔽不同的RISC-V开发板的差异，
-    只需要使用M模式的RustSBI提供的功能即可。
-    RustSBI是SBI标准的Rust语言实现，
-    RustSBI-K210是RustSBI在K210上的具体实现。
-    得益于RustSBI屏蔽了许多开发板的细节，
-    我们移植后的PKE代码是不涉及K210的细节的。
-    当PKE需要移植到其他RISC-V开发板时，我们只需要更改RustSBI的支持包即可。
-    即更换RustSBI在不同开发板上的实现包。
-
-\end{enumerate}
+使用RustSBI，我们可以屏蔽不同的RISC-V开发板的差异，
+只需要使用M模式的RustSBI提供的功能即可。
+RustSBI是SBI标准的Rust语言实现，
+RustSBI-K210是RustSBI在K210上的具体实现。
+得益于RustSBI屏蔽了许多开发板的细节，
+我们移植后的PKE代码是不涉及K210的细节的。
+当PKE需要移植到其他RISC-V开发板时，我们只需要更改RustSBI的支持包即可。
+即更换RustSBI在不同开发板上的实现包。
 
 \section{编译流程改造}
 
