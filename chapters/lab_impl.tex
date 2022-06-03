@@ -23,18 +23,18 @@
 实验的目标是PKE能够加载并成功运行它。
 实验预期是应用通过系统调用，成功打印出“Hello world!”，并正常退出。
 
-\begin{lstlisting}[caption={lab1实验结果（移植K210前）}, label={lst:syscall_before}, language=C]
-    In m_start, hartid:0
-    HTIF is available!
-    (Emulated) memory size: 2048 MB
-    Enter supervisor mode...
-    Application: ./obj/app_helloworld
-    Application program entry point (virtual address): 0x0000000081000000
-    Switching to user mode...
-    Hello world!
-    User exit with code:0.
-    System is shutting down with exit code 0.    
-\end{lstlisting}
+% \begin{lstlisting}[caption={lab1实验结果（移植K210前）}, label={lst:syscall_before}, language=C]
+%     In m_start, hartid:0
+%     HTIF is available!
+%     (Emulated) memory size: 2048 MB
+%     Enter supervisor mode...
+%     Application: ./obj/app_helloworld
+%     Application program entry point (virtual address): 0x0000000081000000
+%     Switching to user mode...
+%     Hello world!
+%     User exit with code:0.
+%     System is shutting down with exit code 0.    
+% \end{lstlisting}
 
 \subsection{具体实现}
 
@@ -137,18 +137,18 @@ static void handle_syscall(trapframe *tf) {
 我们的实验预期是PKE能够捕获执行这个指令时产生的非法指令异常，
 并进行简单处理。
 
-\begin{lstlisting}[caption={lab2实验结果（移植K210前）}, label={lst:lab2_result_before}, language=C]
-    In m_start, hartid:0
-    HTIF is available!
-    (Emulated) memory size: 2048 MB
-    Enter supervisor mode...
-    Application: ./obj/app_illegal_instruction
-    Application program entry point (virtual address): 0x0000000081000000
-    Switching to user mode...
-    Going to hack the system by running privilege instructions.
-    Illegal instruction!
-    System is shutting down with exit code -1.    
-\end{lstlisting}
+% \begin{lstlisting}[caption={lab2实验结果（移植K210前）}, label={lst:lab2_result_before}, language=C]
+%     In m_start, hartid:0
+%     HTIF is available!
+%     (Emulated) memory size: 2048 MB
+%     Enter supervisor mode...
+%     Application: ./obj/app_illegal_instruction
+%     Application program entry point (virtual address): 0x0000000081000000
+%     Switching to user mode...
+%     Going to hack the system by running privilege instructions.
+%     Illegal instruction!
+%     System is shutting down with exit code -1.    
+% \end{lstlisting}
 
 \subsection{实验分析}
 
@@ -224,35 +224,35 @@ K210实现的RISC-V指令集版本是1.9.1，而最新的RISC-V指令集版本�
 最终让用户程序执行循环的同时，
 定时打印出自增的次数。
 
-实验完成后的运行结果：
+% 实验完成后的运行结果：
 
-\begin{lstlisting}[caption={lab3实验结果（移植K210前）}, label={lst:app_long_loop_result_before}]
-    In m_start, hartid:0
-    HTIF is available!
-    (Emulated) memory size: 2048 MB
-    Enter supervisor mode...
-    Application: obj/app_long_loop
-    Application program entry point (virtual address): 0x000000008100007e
-    Switching to user mode...
-    Hello world!
-    wait 0
-    wait 5000000
-    wait 10000000
-    Ticks 0
-    wait 15000000
-    wait 20000000
-    Ticks 1
-    wait 25000000
-    wait 30000000
-    wait 35000000
-    .......
-    Ticks 6
-    wait 90000000
-    wait 95000000
-    Ticks 7
-    User exit with code:0.
-    System is shutting down with exit code 0.    
-\end{lstlisting}
+% \begin{lstlisting}[caption={lab3实验结果（移植K210前）}, label={lst:app_long_loop_result_before}]
+%     In m_start, hartid:0
+%     HTIF is available!
+%     (Emulated) memory size: 2048 MB
+%     Enter supervisor mode...
+%     Application: obj/app_long_loop
+%     Application program entry point (virtual address): 0x000000008100007e
+%     Switching to user mode...
+%     Hello world!
+%     wait 0
+%     wait 5000000
+%     wait 10000000
+%     Ticks 0
+%     wait 15000000
+%     wait 20000000
+%     Ticks 1
+%     wait 25000000
+%     wait 30000000
+%     wait 35000000
+%     .......
+%     Ticks 6
+%     wait 90000000
+%     wait 95000000
+%     Ticks 7
+%     User exit with code:0.
+%     System is shutting down with exit code 0.    
+% \end{lstlisting}
 
 \subsection{具体实现}
 
@@ -346,26 +346,26 @@ K210实现的RISC-V指令集版本是1.9.1，而最新的RISC-V指令集版本�
 
 所以我们的实验预期是内核成功转换用户进程传入的虚拟地址，并完成打印输出。
 
-\begin{lstlisting}[caption={lab4实验结果（移植K210前）}]
-    In m_start, hartid:0
-    HTIF is available!
-    (Emulated) memory size: 2048 MB
-    Enter supervisor mode...
-    PKE kernel start 0x0000000080000000, PKE kernel end: 0x000000008000e000, PKE kernel size: 0x000000000000e000 .
-    free physical memory address: [0x000000008000e000, 0x0000000087ffffff]
-    kernel memory manager is initializing ...
-    KERN_BASE 0x0000000080000000
-    physical address of _etext is: 0x0000000080004000
-    kernel page table is on
-    User application is loading.
-    user frame 0x0000000087fbc000, user stack 0x000000007ffff000, user kstack 0x0000000087fbb000
-    Application: ./obj/app_helloworld_no_lds
-    Application program entry point (virtual address): 0x00000000000100f6
-    Switching to user mode...
-    Hello world!
-    User exit with code:0.
-    System is shutting down with exit code 0.    
-\end{lstlisting}
+% \begin{lstlisting}[caption={lab4实验结果（移植K210前）}]
+%     In m_start, hartid:0
+%     HTIF is available!
+%     (Emulated) memory size: 2048 MB
+%     Enter supervisor mode...
+%     PKE kernel start 0x0000000080000000, PKE kernel end: 0x000000008000e000, PKE kernel size: 0x000000000000e000 .
+%     free physical memory address: [0x000000008000e000, 0x0000000087ffffff]
+%     kernel memory manager is initializing ...
+%     KERN_BASE 0x0000000080000000
+%     physical address of _etext is: 0x0000000080004000
+%     kernel page table is on
+%     User application is loading.
+%     user frame 0x0000000087fbc000, user stack 0x000000007ffff000, user kstack 0x0000000087fbb000
+%     Application: ./obj/app_helloworld_no_lds
+%     Application program entry point (virtual address): 0x00000000000100f6
+%     Switching to user mode...
+%     Hello world!
+%     User exit with code:0.
+%     System is shutting down with exit code 0.    
+% \end{lstlisting}
 
 \subsection{具体实现}
 
@@ -461,26 +461,26 @@ K210实现的RISC-V指令集版本是1.9.1，而最新的RISC-V指令集版本�
 而内存的分配逻辑在PKE中已经实现好了，我们现在还需要实现内存的回收。
 也就是实现naive\_free()函数。
 
-\begin{lstlisting}[caption={lab5实验结果（移植K210前）}]
-    In m_start, hartid:0
-    HTIF is available!
-    (Emulated) memory size: 2048 MB
-    Enter supervisor mode...
-    PKE kernel start 0x0000000080000000, PKE kernel end: 0x000000008000e000, PKE kernel size: 0x000000000000e000 .
-    free physical memory address: [0x000000008000e000, 0x0000000087ffffff]
-    kernel memory manager is initializing ...
-    KERN_BASE 0x0000000080000000
-    physical address of _etext is: 0x0000000080004000
-    kernel page table is on
-    User application is loading.
-    user frame 0x0000000087fbc000, user stack 0x000000007ffff000, user kstack 0x0000000087fbb000
-    Application: ./obj/app_naive_malloc
-    Application program entry point (virtual address): 0x0000000000010078
-    Switching to user mode...
-    s: 0000000000400000, {a 1}
-    User exit with code:0.
-    System is shutting down with exit code 0.    
-\end{lstlisting}
+% \begin{lstlisting}[caption={lab5实验结果（移植K210前）}]
+%     In m_start, hartid:0
+%     HTIF is available!
+%     (Emulated) memory size: 2048 MB
+%     Enter supervisor mode...
+%     PKE kernel start 0x0000000080000000, PKE kernel end: 0x000000008000e000, PKE kernel size: 0x000000000000e000 .
+%     free physical memory address: [0x000000008000e000, 0x0000000087ffffff]
+%     kernel memory manager is initializing ...
+%     KERN_BASE 0x0000000080000000
+%     physical address of _etext is: 0x0000000080004000
+%     kernel page table is on
+%     User application is loading.
+%     user frame 0x0000000087fbc000, user stack 0x000000007ffff000, user kstack 0x0000000087fbb000
+%     Application: ./obj/app_naive_malloc
+%     Application program entry point (virtual address): 0x0000000000010078
+%     Switching to user mode...
+%     s: 0000000000400000, {a 1}
+%     User exit with code:0.
+%     System is shutting down with exit code 0.    
+% \end{lstlisting}
 
 \subsection{具体实现}
 
@@ -577,29 +577,29 @@ K210实现的RISC-V指令集版本是1.9.1，而最新的RISC-V指令集版本�
 并且能够为用户进程的栈空间进行一定的扩容。
 让该用户进程成功运行。
 
-\begin{lstlisting}[caption={lab6实验结果（移植K210前）}]
-    In m_start, hartid:0
-    HTIF is available!
-    (Emulated) memory size: 2048 MB
-    Enter supervisor mode...
-    PKE kernel start 0x0000000080000000, PKE kernel end: 0x000000008000e000, PKE kernel size: 0x000000000000e000 .
-    free physical memory address: [0x000000008000e000, 0x0000000087ffffff]
-    kernel memory manager is initializing ...
-    KERN_BASE 0x0000000080000000
-    physical address of _etext is: 0x0000000080004000
-    kernel page table is on
-    User application is loading.
-    user frame 0x0000000087fbc000, user stack 0x000000007ffff000, user kstack 0x0000000087fbb000
-    Application: ./obj/app_sum_sequence
-    Application program entry point (virtual address): 0x0000000000010096
-    Switching to user mode...
-    handle_page_fault: 000000007fffdff8
-    handle_page_fault: 000000007fffcff8
-    handle_page_fault: 000000007fffbff8
-    Summation of an arithmetic sequence from 0 to 1000 is: 500500
-    User exit with code:0.
-    System is shutting down with exit code 0.    
-\end{lstlisting}
+% \begin{lstlisting}[caption={lab6实验结果（移植K210前）}]
+%     In m_start, hartid:0
+%     HTIF is available!
+%     (Emulated) memory size: 2048 MB
+%     Enter supervisor mode...
+%     PKE kernel start 0x0000000080000000, PKE kernel end: 0x000000008000e000, PKE kernel size: 0x000000000000e000 .
+%     free physical memory address: [0x000000008000e000, 0x0000000087ffffff]
+%     kernel memory manager is initializing ...
+%     KERN_BASE 0x0000000080000000
+%     physical address of _etext is: 0x0000000080004000
+%     kernel page table is on
+%     User application is loading.
+%     user frame 0x0000000087fbc000, user stack 0x000000007ffff000, user kstack 0x0000000087fbb000
+%     Application: ./obj/app_sum_sequence
+%     Application program entry point (virtual address): 0x0000000000010096
+%     Switching to user mode...
+%     handle_page_fault: 000000007fffdff8
+%     handle_page_fault: 000000007fffcff8
+%     handle_page_fault: 000000007fffbff8
+%     Summation of an arithmetic sequence from 0 to 1000 is: 500500
+%     User exit with code:0.
+%     System is shutting down with exit code 0.    
+% \end{lstlisting}
 
 \subsection{具体实现}
 
@@ -688,38 +688,38 @@ K210实现的RISC-V指令集版本是1.9.1，而最新的RISC-V指令集版本�
 
 如用户代码所示，PKE需要创建一个用户进程的子进程，然后调度运行两者。
 
-\begin{lstlisting}[caption={lab7实验结果（移植K210前）}]
-    In m_start, hartid:0
-    HTIF is available!
-    (Emulated) memory size: 2048 MB
-    Enter supervisor mode...
-    PKE kernel start 0x0000000080000000, PKE kernel end: 0x0000000080010000, PKE kernel size: 0x0000000000010000 .
-    free physical memory address: [0x0000000080010000, 0x0000000087ffffff]
-    kernel memory manager is initializing ...
-    KERN_BASE 0x0000000080000000
-    physical address of _etext is: 0x0000000080005000
-    kernel page table is on
-    Switching to user mode...
-    in alloc_proc. user frame 0x0000000087fbc000, user stack 0x000000007ffff000, user kstack 0x0000000087fbb000
-    User application is loading.
-    Application: ./obj/app_naive_fork
-    CODE_SEGMENT added at mapped info offset:3
-    Application program entry point (virtual address): 0x0000000000010078
-    going to insert process 0 to ready queue.
-    going to schedule process 0 to run.
-    User call fork.
-    will fork a child from parent 0.
-    in alloc_proc. user frame 0x0000000087faf000, user stack 0x000000007ffff000, user kstack 0x0000000087fae000
-    do_fork map code segment at pa:0000000087fb2000 of parent to child at va:0000000000010000.
-    going to insert process 1 to ready queue.
-    Parent: Hello world! child id 1
-    User exit with code:0.
-    going to schedule process 1 to run.
-    Child: Hello world!
-    User exit with code:0.
-    no more ready processes, system shutdown now.
-    System is shutting down with exit code 0.    
-\end{lstlisting}
+% \begin{lstlisting}[caption={lab7实验结果（移植K210前）}]
+%     In m_start, hartid:0
+%     HTIF is available!
+%     (Emulated) memory size: 2048 MB
+%     Enter supervisor mode...
+%     PKE kernel start 0x0000000080000000, PKE kernel end: 0x0000000080010000, PKE kernel size: 0x0000000000010000 .
+%     free physical memory address: [0x0000000080010000, 0x0000000087ffffff]
+%     kernel memory manager is initializing ...
+%     KERN_BASE 0x0000000080000000
+%     physical address of _etext is: 0x0000000080005000
+%     kernel page table is on
+%     Switching to user mode...
+%     in alloc_proc. user frame 0x0000000087fbc000, user stack 0x000000007ffff000, user kstack 0x0000000087fbb000
+%     User application is loading.
+%     Application: ./obj/app_naive_fork
+%     CODE_SEGMENT added at mapped info offset:3
+%     Application program entry point (virtual address): 0x0000000000010078
+%     going to insert process 0 to ready queue.
+%     going to schedule process 0 to run.
+%     User call fork.
+%     will fork a child from parent 0.
+%     in alloc_proc. user frame 0x0000000087faf000, user stack 0x000000007ffff000, user kstack 0x0000000087fae000
+%     do_fork map code segment at pa:0000000087fb2000 of parent to child at va:0000000000010000.
+%     going to insert process 1 to ready queue.
+%     Parent: Hello world! child id 1
+%     User exit with code:0.
+%     going to schedule process 1 to run.
+%     Child: Hello world!
+%     User exit with code:0.
+%     no more ready processes, system shutdown now.
+%     System is shutting down with exit code 0.    
+% \end{lstlisting}
 
 \subsection{具体实现}
 
@@ -830,69 +830,69 @@ yield()函数是由PKE内核实现的系统调用功能之一。
 我们的实验预期是，父子进程之间的调度是可以交替的，
 也就是说父子进程之间需要轮流打印出他们对应的字符串。
 
-\begin{lstlisting}[caption={lab8实验结果（移植K210前）}]
-    In m_start, hartid:0
-    HTIF is available!
-    (Emulated) memory size: 2048 MB
-    Enter supervisor mode...
-    PKE kernel start 0x0000000080000000, PKE kernel end: 0x0000000080010000, PKE kernel size: 0x0000000000010000 .
-    free physical memory address: [0x0000000080010000, 0x0000000087ffffff]
-    kernel memory manager is initializing ...
-    KERN_BASE 0x0000000080000000
-    physical address of _etext is: 0x0000000080005000
-    kernel page table is on
-    Switching to user mode...
-    in alloc_proc. user frame 0x0000000087fbc000, user stack 0x000000007ffff000, user kstack 0x0000000087fbb000
-    User application is loading.
-    Application: ./obj/app_yield
-    CODE_SEGMENT added at mapped info offset:3
-    Application program entry point (virtual address): 0x000000000001017c
-    going to insert process 0 to ready queue.
-    going to schedule process 0 to run.
-    User call fork.
-    will fork a child from parent 0.
-    in alloc_proc. user frame 0x0000000087faf000, user stack 0x000000007ffff000, user kstack 0x0000000087fae000
-    do_fork map code segment at pa:0000000087fb2000 of parent to child at va:0000000000010000.
-    going to insert process 1 to ready queue.
-    Parent: Hello world!
-    Parent running 0
-    going to insert process 0 to ready queue.
-    going to schedule process 1 to run.
-    Child: Hello world!
-    Child running 0
-    going to insert process 1 to ready queue.
-    going to schedule process 0 to run.
-    Parent running 10000
-    going to insert process 0 to ready queue.
-    going to schedule process 1 to run.
-    Child running 10000
-    going to insert process 1 to ready queue.
-    going to schedule process 0 to run.
-    Parent running 20000
-    going to insert process 0 to ready queue.
-    going to schedule process 1 to run.
-    Child running 20000
-    going to insert process 1 to ready queue.
-    going to schedule process 0 to run.
-    Parent running 30000
-    going to insert process 0 to ready queue.
-    going to schedule process 1 to run.
-    Child running 30000
-    going to insert process 1 to ready queue.
-    going to schedule process 0 to run.
-    Parent running 40000
-    going to insert process 0 to ready queue.
-    going to schedule process 1 to run.
-    Child running 40000
-    ......
-    going to insert process 1 to ready queue.
-    going to schedule process 0 to run.
-    User exit with code:0.
-    going to schedule process 1 to run.
-    User exit with code:0.
-    no more ready processes, system shutdown now.
-    System is shutting down with exit code 0.    
-\end{lstlisting}
+% \begin{lstlisting}[caption={lab8实验结果（移植K210前）}]
+%     In m_start, hartid:0
+%     HTIF is available!
+%     (Emulated) memory size: 2048 MB
+%     Enter supervisor mode...
+%     PKE kernel start 0x0000000080000000, PKE kernel end: 0x0000000080010000, PKE kernel size: 0x0000000000010000 .
+%     free physical memory address: [0x0000000080010000, 0x0000000087ffffff]
+%     kernel memory manager is initializing ...
+%     KERN_BASE 0x0000000080000000
+%     physical address of _etext is: 0x0000000080005000
+%     kernel page table is on
+%     Switching to user mode...
+%     in alloc_proc. user frame 0x0000000087fbc000, user stack 0x000000007ffff000, user kstack 0x0000000087fbb000
+%     User application is loading.
+%     Application: ./obj/app_yield
+%     CODE_SEGMENT added at mapped info offset:3
+%     Application program entry point (virtual address): 0x000000000001017c
+%     going to insert process 0 to ready queue.
+%     going to schedule process 0 to run.
+%     User call fork.
+%     will fork a child from parent 0.
+%     in alloc_proc. user frame 0x0000000087faf000, user stack 0x000000007ffff000, user kstack 0x0000000087fae000
+%     do_fork map code segment at pa:0000000087fb2000 of parent to child at va:0000000000010000.
+%     going to insert process 1 to ready queue.
+%     Parent: Hello world!
+%     Parent running 0
+%     going to insert process 0 to ready queue.
+%     going to schedule process 1 to run.
+%     Child: Hello world!
+%     Child running 0
+%     going to insert process 1 to ready queue.
+%     going to schedule process 0 to run.
+%     Parent running 10000
+%     going to insert process 0 to ready queue.
+%     going to schedule process 1 to run.
+%     Child running 10000
+%     going to insert process 1 to ready queue.
+%     going to schedule process 0 to run.
+%     Parent running 20000
+%     going to insert process 0 to ready queue.
+%     going to schedule process 1 to run.
+%     Child running 20000
+%     going to insert process 1 to ready queue.
+%     going to schedule process 0 to run.
+%     Parent running 30000
+%     going to insert process 0 to ready queue.
+%     going to schedule process 1 to run.
+%     Child running 30000
+%     going to insert process 1 to ready queue.
+%     going to schedule process 0 to run.
+%     Parent running 40000
+%     going to insert process 0 to ready queue.
+%     going to schedule process 1 to run.
+%     Child running 40000
+%     ......
+%     going to insert process 1 to ready queue.
+%     going to schedule process 0 to run.
+%     User exit with code:0.
+%     going to schedule process 1 to run.
+%     User exit with code:0.
+%     no more ready processes, system shutdown now.
+%     System is shutting down with exit code 0.    
+% \end{lstlisting}
 
 \subsection{具体实现}
 
@@ -1027,65 +1027,65 @@ yield()函数是由PKE内核实现的系统调用功能之一。
 所以我们的实验预期是，完成PKE内核中时间片调度进程的实现，
 并让父子进程交替执行。
 
-\begin{lstlisting}[caption={lab9实验结果（移植K210前）}]
-    In m_start, hartid:0
-    HTIF is available!
-    (Emulated) memory size: 2048 MB
-    Enter supervisor mode...
-    PKE kernel start 0x0000000080000000, PKE kernel end: 0x0000000080010000, PKE kernel size: 0x0000000000010000 .
-    free physical memory address: [0x0000000080010000, 0x0000000087ffffff]
-    kernel memory manager is initializing ...
-    KERN_BASE 0x0000000080000000
-    physical address of _etext is: 0x0000000080005000
-    kernel page table is on
-    Switching to user mode...
-    in alloc_proc. user frame 0x0000000087fbc000, user stack 0x000000007ffff000, user kstack 0x0000000087fbb000
-    User application is loading.
-    Application: ./obj/app_two_long_loops
-    CODE_SEGMENT added at mapped info offset:3
-    Application program entry point (virtual address): 0x000000000001017c
-    going to insert process 0 to ready queue.
-    going to schedule process 0 to run.
-    User call fork.
-    will fork a child from parent 0.
-    in alloc_proc. user frame 0x0000000087faf000, user stack 0x000000007ffff000, user kstack 0x0000000087fae000
-    do_fork map code segment at pa:0000000087fb2000 of parent to child at va:0000000000010000.
-    going to insert process 1 to ready queue.
-    Parent: Hello world!
-    Parent running 0
-    Parent running 10000000
-    Ticks 0
-    Parent running 20000000
-    Ticks 1
-    going to insert process 0 to ready queue.
-    going to schedule process 1 to run.
-    Child: Hello world!
-    Child running 0
-    Child running 10000000
-    Ticks 2
-    Child running 20000000
-    .....
-    Ticks 11
-    going to insert process 1 to ready queue.
-    going to schedule process 0 to run.
-    Parent running 80000000
-    Ticks 12
-    Parent running 90000000
-    Ticks 13
-    going to insert process 0 to ready queue.
-    going to schedule process 1 to run.
-    Child running 80000000
-    Ticks 14
-    Child running 90000000
-    Ticks 15
-    going to insert process 1 to ready queue.
-    going to schedule process 0 to run.
-    User exit with code:0.
-    going to schedule process 1 to run.
-    User exit with code:0.
-    no more ready processes, system shutdown now.
-    System is shutting down with exit code 0.    
-\end{lstlisting}
+% \begin{lstlisting}[caption={lab9实验结果（移植K210前）}]
+%     In m_start, hartid:0
+%     HTIF is available!
+%     (Emulated) memory size: 2048 MB
+%     Enter supervisor mode...
+%     PKE kernel start 0x0000000080000000, PKE kernel end: 0x0000000080010000, PKE kernel size: 0x0000000000010000 .
+%     free physical memory address: [0x0000000080010000, 0x0000000087ffffff]
+%     kernel memory manager is initializing ...
+%     KERN_BASE 0x0000000080000000
+%     physical address of _etext is: 0x0000000080005000
+%     kernel page table is on
+%     Switching to user mode...
+%     in alloc_proc. user frame 0x0000000087fbc000, user stack 0x000000007ffff000, user kstack 0x0000000087fbb000
+%     User application is loading.
+%     Application: ./obj/app_two_long_loops
+%     CODE_SEGMENT added at mapped info offset:3
+%     Application program entry point (virtual address): 0x000000000001017c
+%     going to insert process 0 to ready queue.
+%     going to schedule process 0 to run.
+%     User call fork.
+%     will fork a child from parent 0.
+%     in alloc_proc. user frame 0x0000000087faf000, user stack 0x000000007ffff000, user kstack 0x0000000087fae000
+%     do_fork map code segment at pa:0000000087fb2000 of parent to child at va:0000000000010000.
+%     going to insert process 1 to ready queue.
+%     Parent: Hello world!
+%     Parent running 0
+%     Parent running 10000000
+%     Ticks 0
+%     Parent running 20000000
+%     Ticks 1
+%     going to insert process 0 to ready queue.
+%     going to schedule process 1 to run.
+%     Child: Hello world!
+%     Child running 0
+%     Child running 10000000
+%     Ticks 2
+%     Child running 20000000
+%     .....
+%     Ticks 11
+%     going to insert process 1 to ready queue.
+%     going to schedule process 0 to run.
+%     Parent running 80000000
+%     Ticks 12
+%     Parent running 90000000
+%     Ticks 13
+%     going to insert process 0 to ready queue.
+%     going to schedule process 1 to run.
+%     Child running 80000000
+%     Ticks 14
+%     Child running 90000000
+%     Ticks 15
+%     going to insert process 1 to ready queue.
+%     going to schedule process 0 to run.
+%     User exit with code:0.
+%     going to schedule process 1 to run.
+%     User exit with code:0.
+%     no more ready processes, system shutdown now.
+%     System is shutting down with exit code 0.    
+% \end{lstlisting}
 
 \subsection{具体实现}
 
