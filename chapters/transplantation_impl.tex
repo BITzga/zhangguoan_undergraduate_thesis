@@ -127,7 +127,7 @@ RustSBI-K210的支持包是bin文件，它需要一起打包到内核程序中�
 
 由于我们需要引入RustSBI，并需要将其打包进入内核。
 除此之外，还需要将内核烧录到K210，并与K210进行串口通讯。
-现有的Makefile并不支持这些工作。因此，我们需要修改MakeFile\cite{Ma2006Analyse}。
+现有的Makefile并不支持这些工作。因此，我们需要修改MakeFile。
 
 \begin{lstlisting}[caption={修改Makefile}, label={lst:change_makefile}]
     $(KERNEL_K210_TARGET): $(KERNEL_TEMP_TARGET) $(BOOTLOADER)
@@ -266,7 +266,7 @@ RustSBI将控制权交接给内核->内核运行
 
 PKE已有代码对spike提供的HTIF（Host-Target InterFace）接口存在依赖。
 当PKE需要打印字符串到屏幕、访问主机上的文件或设备时会调用HTIF相关接口。
-PKE通过HTIF接口调用Linux对应接口，进而实现访问外部设备的功能\cite{2019Porting}。
+PKE通过HTIF接口调用Linux对应接口，进而实现访问外部设备的功能。
 
 如果需要在K210上维持和原先PKE在spike模拟器一样的环境。
 K210需要同时运行PKE和Linux两个内核程序，还要提供spike模拟器类似的与Linux访问的HTIF接口。
