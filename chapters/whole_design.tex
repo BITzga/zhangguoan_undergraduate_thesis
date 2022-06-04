@@ -317,3 +317,18 @@ CPU的执行会跳转模式的S模式的PKE或M模式的RustSBI。
 
 \subsection{PKE移植K210工作与类似工作的对比}
 
+通过调研发现，最近几年在K210开发板上的内核移植或开发工作有许多。
+例如南开大学将ucore移植到了K210开发板上。
+华中科技大学将xv6移植到了K210开发板上\cite{xv6_k210_GitHub}。
+除此之外，清华大学还使用了Rust语言，
+在K210开发板和qemu模拟器上开发了操作系统rCore及其相关实验\cite{rCore_GitHub}。
+
+以ucore在K210的移植工作为例，本文的移植工作与其有许多异同点。
+首先，两者的编译与烧录流程是大致相同的。
+通过阅读ucore与PKE的Makefile，两者都引入了RustSBI、
+打包完整内核镜像的流程基本相同、烧录K210时都使用了K-Flash程序、
+上位机与内核进行串口通讯时都使用了minitem程序\cite{NKU_ucore_GitHub}。
+此次，从RISC-V的特权级方面看，两者的M层架构相同，
+都使用了RustSBI提供bootloader与运行时服务。
+最后，两者的移植意义不同。PKE的移植是为了降低物理开发环境的经济成本。
+ucore的移植主要是为了扩大其在RISC-V指令集方面的生态。
