@@ -3,7 +3,7 @@
 在本章节，我们将给出移植K210后的代理内核实验的参考实现。
 每个实验实现的阐述结构大致相同，
 先从实验的用户程序开始，描述实验的目标和预期效果。
-最后我们会给出实验的参考实现代码和实现过程描述。
+然后我们会给出实验的参考实现代码和实现过程描述。最后给出功能测试的结果。
 
 \section{系统调用}
 
@@ -22,6 +22,19 @@
 
 实验的目标是PKE能够加载并成功运行它。
 实验预期是应用通过系统调用，成功打印出“Hello world!”，并正常退出。
+
+% \begin{lstlisting}[caption={lab1实验结果（移植K210前）}, label={lst:syscall_before}, language=C]
+%     In m_start, hartid:0
+%     HTIF is available!
+%     (Emulated) memory size: 2048 MB
+%     Enter supervisor mode...
+%     Application: ./obj/app_helloworld
+%     Application program entry point (virtual address): 0x0000000081000000
+%     Switching to user mode...
+%     Hello world!
+%     User exit with code:0.
+%     System is shutting down with exit code 0.    
+% \end{lstlisting}
 
 \subsection{具体实现}
 
@@ -68,9 +81,13 @@ static void handle_syscall(trapframe *tf) {
 }
 \end{lstlisting}
 
-将实验要求实现后，我们可以在K210上运行实验代码，得到如下结果。
+\subsection{功能测试}
 
-\begin{lstlisting}[caption={lab1实验结果}, label={lst:lab1_result}]
+将实验要求实现后，我们可以在K210上运行实验代码，得到如下结果。
+此结果与PKE移植前的实验预期基本一致，这意味着此次实验的功能测试通过。
+
+
+\begin{lstlisting}[caption={lab1实验结果（移植K210后）}, label={lst:lab1_result}]
     [rustsbi] Version 0.1.0
     .______       __    __      _______.___________.  _______..______   __
     |   _  \     |  |  |  |    /       |           | /       ||   _  \ |  |
@@ -120,6 +137,19 @@ static void handle_syscall(trapframe *tf) {
 我们的实验预期是PKE能够捕获执行这个指令时产生的非法指令异常，
 并进行简单处理。
 
+% \begin{lstlisting}[caption={lab2实验结果（移植K210前）}, label={lst:lab2_result_before}, language=C]
+%     In m_start, hartid:0
+%     HTIF is available!
+%     (Emulated) memory size: 2048 MB
+%     Enter supervisor mode...
+%     Application: ./obj/app_illegal_instruction
+%     Application program entry point (virtual address): 0x0000000081000000
+%     Switching to user mode...
+%     Going to hack the system by running privilege instructions.
+%     Illegal instruction!
+%     System is shutting down with exit code -1.    
+% \end{lstlisting}
+
 \subsection{实验分析}
 
 由于RustSBI-K210支持包对K210进行了兼容性的处理。
@@ -136,9 +166,14 @@ K210实现的RISC-V指令集版本是1.9.1，而最新的RISC-V指令集版本�
 当用户程序执行非法指令时，RustSBI会捕获异常，
 并且产生panic，输出panic信息。这和原来实验的预期是一致的。
 
-此次实验不需要我们改动PKE代码，就可以得到预期效果：
+此次实验不需要我们改动PKE代码，就可以得到预期效果。
 
-\begin{lstlisting}[caption={lab2实验结果}, label={lst:app_illegal_instruction_result}]
+\subsection{功能测试}
+
+将实验要求实现后，我们可以在K210上运行实验代码，得到如下结果。
+此结果与PKE移植前的实验预期基本一致，这意味着此次实验的功能测试通过。
+
+\begin{lstlisting}[caption={lab2实验结果（移植K210后）}, label={lst:app_illegal_instruction_result}]
     [rustsbi] Version 0.1.0
     .______       __    __      _______.___________.  _______..______   __
     |   _  \     |  |  |  |    /       |           | /       ||   _  \ |  |
@@ -189,6 +224,36 @@ K210实现的RISC-V指令集版本是1.9.1，而最新的RISC-V指令集版本�
 最终让用户程序执行循环的同时，
 定时打印出自增的次数。
 
+% 实验完成后的运行结果：
+
+% \begin{lstlisting}[caption={lab3实验结果（移植K210前）}, label={lst:app_long_loop_result_before}]
+%     In m_start, hartid:0
+%     HTIF is available!
+%     (Emulated) memory size: 2048 MB
+%     Enter supervisor mode...
+%     Application: obj/app_long_loop
+%     Application program entry point (virtual address): 0x000000008100007e
+%     Switching to user mode...
+%     Hello world!
+%     wait 0
+%     wait 5000000
+%     wait 10000000
+%     Ticks 0
+%     wait 15000000
+%     wait 20000000
+%     Ticks 1
+%     wait 25000000
+%     wait 30000000
+%     wait 35000000
+%     .......
+%     Ticks 6
+%     wait 90000000
+%     wait 95000000
+%     Ticks 7
+%     User exit with code:0.
+%     System is shutting down with exit code 0.    
+% \end{lstlisting}
+
 \subsection{具体实现}
 
 \begin{lstlisting}[caption={定时器中断处理程序}, label={lst:app_timer_handler}, language=C]
@@ -202,6 +267,58 @@ K210实现的RISC-V指令集版本是1.9.1，而最新的RISC-V指令集版本�
 
 我们的实现逻辑很简单，就是让定时器中断的次数自增，并打印输出。
 然后设置下一次定时器中断的时间。
+
+\subsection{功能测试}
+
+将实验要求实现后，我们可以在K210上运行实验代码，得到如下结果。
+此结果与PKE移植前的实验预期基本一致，这意味着此次实验的功能测试通过。
+
+\begin{lstlisting}[caption={lab3实验结果（移植K210后）}]
+    .______       __    __      _______.___________.  _______..______   __
+    |   _  \     |  |  |  |    /       |           | /       ||   _  \ |  |
+    |  |_)  |    |  |  |  |   |   (----`---|  |----`|   (----`|  |_)  ||  |
+    |      /     |  |  |  |    \   \       |  |      \   \    |   _  < |  |
+    |  |\  \----.|  `--'  |.----)   |      |  |  .----)   |   |  |_)  ||  |
+    | _| `._____| \______/ |_______/       |__|  |_______/    |______/ |__|
+    
+    [rustsbi] Platform: K210
+    [rustsbi] misa: RV64ACDFIMSU
+    [rustsbi] mideleg: 0x222
+    [rustsbi] medeleg: 0x1ab
+    [rustsbi] Kernel entry: 0x80020000
+    Enter supervisor mode...
+    
+    ++ setup timer interrupts
+    
+    Application program entry point (virtual address): 0x000000008002091a
+    
+    Switch to user mode...
+    
+    wait 0
+    wait 5000000
+    wait 10000000
+    wait 15000000
+    wait 20000000
+    wait 25000000
+    wait 30000000
+    Ticks 1
+    wait 35000000
+    wait 40000000
+    wait 45000000
+    wait 50000000
+    wait 55000000
+    wait 60000000
+    Ticks 2
+    .....
+    Ticks 3
+    wait 90000000
+    wait 95000000
+    
+    User exit with code:0.
+    System is shutting down with exit code 0.
+    [rustsbi] todo: shutdown all harts on k210; program halt
+       
+\end{lstlisting}
 
 \section{虚拟地址和物理地址的转换}
 
@@ -228,6 +345,27 @@ K210实现的RISC-V指令集版本是1.9.1，而最新的RISC-V指令集版本�
 内核需要将该虚拟地址转换成物理地址才能访问字符串“Hello world!”。
 
 所以我们的实验预期是内核成功转换用户进程传入的虚拟地址，并完成打印输出。
+
+% \begin{lstlisting}[caption={lab4实验结果（移植K210前）}]
+%     In m_start, hartid:0
+%     HTIF is available!
+%     (Emulated) memory size: 2048 MB
+%     Enter supervisor mode...
+%     PKE kernel start 0x0000000080000000, PKE kernel end: 0x000000008000e000, PKE kernel size: 0x000000000000e000 .
+%     free physical memory address: [0x000000008000e000, 0x0000000087ffffff]
+%     kernel memory manager is initializing ...
+%     KERN_BASE 0x0000000080000000
+%     physical address of _etext is: 0x0000000080004000
+%     kernel page table is on
+%     User application is loading.
+%     user frame 0x0000000087fbc000, user stack 0x000000007ffff000, user kstack 0x0000000087fbb000
+%     Application: ./obj/app_helloworld_no_lds
+%     Application program entry point (virtual address): 0x00000000000100f6
+%     Switching to user mode...
+%     Hello world!
+%     User exit with code:0.
+%     System is shutting down with exit code 0.    
+% \end{lstlisting}
 
 \subsection{具体实现}
 
@@ -257,6 +395,41 @@ K210实现的RISC-V指令集版本是1.9.1，而最新的RISC-V指令集版本�
 虚拟地址到物理地址的转换逻辑很简单，
 首先是通过调用page\_walk()函数，查找虚拟地址的页表项。
 找到页表项以后，再通过PTE2PA()函数和一些移位操作获得物理地址。
+
+\subsection{功能测试}
+
+将实验要求实现后，我们可以在K210上运行实验代码，得到如下结果。
+此结果与PKE移植前的实验预期基本一致，这意味着此次实验的功能测试通过。
+
+\begin{lstlisting}[caption={lab4实验结果（移植K210后）}]
+    .______       __    __      _______.___________.  _______..______   __
+    |   _  \     |  |  |  |    /       |           | /       ||   _  \ |  |
+    |  |_)  |    |  |  |  |   |   (----`---|  |----`|   (----`|  |_)  ||  |
+    |      /     |  |  |  |    \   \       |  |      \   \    |   _  < |  |
+    |  |\  \----.|  `--'  |.----)   |      |  |  .----)   |   |  |_)  ||  |
+    | _| `._____| \______/ |_______/       |__|  |_______/    |______/ |__|
+    
+    [rustsbi] Platform: K210
+    [rustsbi] misa: RV64ACDFIMSU
+    [rustsbi] mideleg: 0x222
+    [rustsbi] medeleg: 0x1ab
+    [rustsbi] Kernel entry: 0x80020000
+    Enter supervisor mode...
+    PKE kernel start 0x0000000080020000, PKE kernel end: 0x0000000080027000, PKE kernel size: 0x0000000000007000 .
+    free physical memory address: [0x0000000080027000, 0x000000008011ffff] 
+    kernel memory manager is initializing ...
+    KERN_BASE 0x0000000080020000
+    physical address of _etext is: 0x0000000080024000
+    kernel page table is on 
+    User application is loading.
+    user frame 0x000000008011b000, user stack 0x000000007ffff000, user kstack 0x000000008011a000 
+    Application program entry point (virtual address): 0x0000000080020ec8
+    Switch to user mode...
+    Hello world!
+    User exit with code:0.
+    System is shutting down with exit code 0.
+    [rustsbi] todo: shutdown all harts on k210; program halt    
+\end{lstlisting}
 
 \section{基本的内存管理}
 
@@ -288,10 +461,30 @@ K210实现的RISC-V指令集版本是1.9.1，而最新的RISC-V指令集版本�
 而内存的分配逻辑在PKE中已经实现好了，我们现在还需要实现内存的回收。
 也就是实现naive\_free()函数。
 
+% \begin{lstlisting}[caption={lab5实验结果（移植K210前）}]
+%     In m_start, hartid:0
+%     HTIF is available!
+%     (Emulated) memory size: 2048 MB
+%     Enter supervisor mode...
+%     PKE kernel start 0x0000000080000000, PKE kernel end: 0x000000008000e000, PKE kernel size: 0x000000000000e000 .
+%     free physical memory address: [0x000000008000e000, 0x0000000087ffffff]
+%     kernel memory manager is initializing ...
+%     KERN_BASE 0x0000000080000000
+%     physical address of _etext is: 0x0000000080004000
+%     kernel page table is on
+%     User application is loading.
+%     user frame 0x0000000087fbc000, user stack 0x000000007ffff000, user kstack 0x0000000087fbb000
+%     Application: ./obj/app_naive_malloc
+%     Application program entry point (virtual address): 0x0000000000010078
+%     Switching to user mode...
+%     s: 0000000000400000, {a 1}
+%     User exit with code:0.
+%     System is shutting down with exit code 0.    
+% \end{lstlisting}
 
 \subsection{具体实现}
 
-\begin{lstlisting}
+\begin{lstlisting}[caption={内存回收实现}, label={lst:naive_free}, language=C]
     uint64 sys_user_free_page(uint64 va) {
         user_vm_unmap((pagetable_t)current->pagetable, va, PGSIZE, 1);
         return 0;
@@ -316,6 +509,40 @@ K210实现的RISC-V指令集版本是1.9.1，而最新的RISC-V指令集版本�
 然后我们将页表项的PTE\_V位置0，这意味着此页表项将变成无效页表项。
 与此同时，我们通过free\_page()函数将物理页面回收。
 在这里我们只考虑一个物理页。
+
+\subsection{功能测试}
+
+将实验要求实现后，我们可以在K210上运行实验代码，得到如下结果。
+此结果与PKE移植前的实验预期基本一致，这意味着此次实验的功能测试通过。
+
+\begin{lstlisting}[caption={lab5实验结果（移植K210后）}]
+    .______       __    __      _______.___________.  _______..______   __
+    |   _  \     |  |  |  |    /       |           | /       ||   _  \ |  |
+    |  |_)  |    |  |  |  |   |   (----`---|  |----`|   (----`|  |_)  ||  |
+    |      /     |  |  |  |    \   \       |  |      \   \    |   _  < |  |
+    |  |\  \----.|  `--'  |.----)   |      |  |  .----)   |   |  |_)  ||  |
+    | _| `._____| \______/ |_______/       |__|  |_______/    |______/ |__|
+    [rustsbi] Platform: K210
+    [rustsbi] misa: RV64ACDFIMSU
+    [rustsbi] mideleg: 0x222
+    [rustsbi] medeleg: 0x1ab
+    [rustsbi] Kernel entry: 0x80020000
+    Enter supervisor mode...
+    PKE kernel start 0x0000000080020000, PKE kernel end: 0x0000000080028000, PKE kernel size: 0x0000000000008000 .
+    free physical memory address: [0x0000000080028000, 0x000000008011ffff]
+    kernel memory manager is initializing ...
+    KERN_BASE 0x0000000080020000
+    physical address of _etext is: 0x0000000080025000
+    kernel page table is on
+    User application is loading.
+    user frame 0x000000008011b000, user stack 0x000000007ffff000, user kstack 0x000000008011a000
+    Application program entry point (virtual address): 0x0000000080020f28
+    Switch to user mode...
+    s: 0000000000400000, {a 1}
+    User exit with code:0.
+    System is shutting down with exit code 0.
+    [rustsbi] todo: shutdown all harts on k210; program halt    
+\end{lstlisting}
 
 \section{栈空间不足与缺页异常}
 
@@ -350,6 +577,30 @@ K210实现的RISC-V指令集版本是1.9.1，而最新的RISC-V指令集版本�
 并且能够为用户进程的栈空间进行一定的扩容。
 让该用户进程成功运行。
 
+% \begin{lstlisting}[caption={lab6实验结果（移植K210前）}]
+%     In m_start, hartid:0
+%     HTIF is available!
+%     (Emulated) memory size: 2048 MB
+%     Enter supervisor mode...
+%     PKE kernel start 0x0000000080000000, PKE kernel end: 0x000000008000e000, PKE kernel size: 0x000000000000e000 .
+%     free physical memory address: [0x000000008000e000, 0x0000000087ffffff]
+%     kernel memory manager is initializing ...
+%     KERN_BASE 0x0000000080000000
+%     physical address of _etext is: 0x0000000080004000
+%     kernel page table is on
+%     User application is loading.
+%     user frame 0x0000000087fbc000, user stack 0x000000007ffff000, user kstack 0x0000000087fbb000
+%     Application: ./obj/app_sum_sequence
+%     Application program entry point (virtual address): 0x0000000000010096
+%     Switching to user mode...
+%     handle_page_fault: 000000007fffdff8
+%     handle_page_fault: 000000007fffcff8
+%     handle_page_fault: 000000007fffbff8
+%     Summation of an arithmetic sequence from 0 to 1000 is: 500500
+%     User exit with code:0.
+%     System is shutting down with exit code 0.    
+% \end{lstlisting}
+
 \subsection{具体实现}
 
 \begin{lstlisting}[caption={handle\_page\_fault}, label={lst:handle_page_fault}, language=C]
@@ -373,6 +624,43 @@ K210实现的RISC-V指令集版本是1.9.1，而最新的RISC-V指令集版本�
                 break;
         }
     }    
+\end{lstlisting}
+
+\subsection{功能测试}
+
+将实验要求实现后，我们可以在K210上运行实验代码，得到如下结果。
+此结果与PKE移植前的实验预期基本一致，这意味着此次实验的功能测试通过。
+
+\begin{lstlisting}[caption={lab6实验结果（移植K210后）}]
+    .______       __    __      _______.___________.  _______..______   __
+    |   _  \     |  |  |  |    /       |           | /       ||   _  \ |  |
+    |  |_)  |    |  |  |  |   |   (----`---|  |----`|   (----`|  |_)  ||  |
+    |      /     |  |  |  |    \   \       |  |      \   \    |   _  < |  |
+    |  |\  \----.|  `--'  |.----)   |      |  |  .----)   |   |  |_)  ||  |
+    | _| `._____| \______/ |_______/       |__|  |_______/    |______/ |__|
+    [rustsbi] Implementation: RustSBI-K210 Version 0.0.2
+    [rustsbi] misa: RV64ACDFIMSU
+    [rustsbi] mideleg: ssoft, stimer (0x22)
+    [rustsbi] medeleg: ima, bkpt, uecall (0x109)
+    [rustsbi] enter supervisor 0x80020000
+    Enter supervisor mode...
+    PKE kernel start 0x0000000080020000, PKE kernel end: 0x0000000080028000, PKE kernel size: 0x0000000000008000 .
+    free physical memory address: [0x0000000080028000, 0x000000008011ffff]
+    kernel memory manager is initializing ...
+    KERN_BASE 0x0000000080020000
+    physical address of _etext is: 0x0000000080025000
+    kernel page table is on
+    User application is loading.
+    user frame 0x000000008011b000, user stack 0x000000007ffff000, user kstack 0x000000008011a000
+    Application program entry point (virtual address): 0x0000000080020fc2
+    Switch to user mode...
+    handle_page_fault: 000000007fffdff8
+    handle_page_fault: 000000007fffcff8
+    handle_page_fault: 000000007fffbff8
+    Summation of an arithmetic sequence from 0 to 1000 is: 500500
+    User exit with code:0.
+    System is shutting down with exit code 0.
+    [rustsbi] reset triggered! todo: shutdown all harts on k210; program halt. Type: 0, reason: 0    
 \end{lstlisting}
 
 \section{创建子进程fork的实现}
@@ -400,6 +688,39 @@ K210实现的RISC-V指令集版本是1.9.1，而最新的RISC-V指令集版本�
 
 如用户代码所示，PKE需要创建一个用户进程的子进程，然后调度运行两者。
 
+% \begin{lstlisting}[caption={lab7实验结果（移植K210前）}]
+%     In m_start, hartid:0
+%     HTIF is available!
+%     (Emulated) memory size: 2048 MB
+%     Enter supervisor mode...
+%     PKE kernel start 0x0000000080000000, PKE kernel end: 0x0000000080010000, PKE kernel size: 0x0000000000010000 .
+%     free physical memory address: [0x0000000080010000, 0x0000000087ffffff]
+%     kernel memory manager is initializing ...
+%     KERN_BASE 0x0000000080000000
+%     physical address of _etext is: 0x0000000080005000
+%     kernel page table is on
+%     Switching to user mode...
+%     in alloc_proc. user frame 0x0000000087fbc000, user stack 0x000000007ffff000, user kstack 0x0000000087fbb000
+%     User application is loading.
+%     Application: ./obj/app_naive_fork
+%     CODE_SEGMENT added at mapped info offset:3
+%     Application program entry point (virtual address): 0x0000000000010078
+%     going to insert process 0 to ready queue.
+%     going to schedule process 0 to run.
+%     User call fork.
+%     will fork a child from parent 0.
+%     in alloc_proc. user frame 0x0000000087faf000, user stack 0x000000007ffff000, user kstack 0x0000000087fae000
+%     do_fork map code segment at pa:0000000087fb2000 of parent to child at va:0000000000010000.
+%     going to insert process 1 to ready queue.
+%     Parent: Hello world! child id 1
+%     User exit with code:0.
+%     going to schedule process 1 to run.
+%     Child: Hello world!
+%     User exit with code:0.
+%     no more ready processes, system shutdown now.
+%     System is shutting down with exit code 0.    
+% \end{lstlisting}
+
 \subsection{具体实现}
 
 如下所示，我们在kernel/process.c中补全了do\_fork()函数。
@@ -417,6 +738,53 @@ K210实现的RISC-V指令集版本是1.9.1，而最新的RISC-V指令集版本�
                USER_PROGRAM_ENTRY, parent->mapped_info[i].va + j * PGSIZE);
     }    
 \end{lstlisting}
+
+\subsection{功能测试}
+
+将实验要求实现后，我们可以在K210上运行实验代码，得到如下结果。
+此结果与PKE移植前的实验预期基本一致，这意味着此次实验的功能测试通过。
+
+\begin{lstlisting}[caption={lab7实验结果（移植K210后）}]
+    .______       __    __      _______.___________.  _______..______   __
+    |   _  \     |  |  |  |    /       |           | /       ||   _  \ |  |
+    |  |_)  |    |  |  |  |   |   (----`---|  |----`|   (----`|  |_)  ||  |
+    |      /     |  |  |  |    \   \       |  |      \   \    |   _  < |  |
+    |  |\  \----.|  `--'  |.----)   |      |  |  .----)   |   |  |_)  ||  |
+    | _| `._____| \______/ |_______/       |__|  |_______/    |______/ |__|
+    [rustsbi] Implementation: RustSBI-K210 Version 0.0.2
+    [rustsbi] misa: RV64ACDFIMSU
+    [rustsbi] mideleg: ssoft, stimer (0x22)
+    [rustsbi] medeleg: ima, bkpt, uecall (0x109)
+    [rustsbi] enter supervisor 0x80020000
+    Enter supervisor mode...
+    PKE kernel start 0x0000000080020000, PKE kernel end: 0x0000000080029000, PKE kernel size: 0x0000000000009000 .
+    free physical memory address: [0x0000000080029000, 0x000000008011ffff]
+    kernel memory manager is initializing ...
+    KERN_BASE 0x0000000080020000
+    physical address of _etext is: 0x0000000080025000
+    kernel page table is on
+    Switch to user mode...
+    in alloc_proc. user frame 0x000000008011b000, user stack 0x000000007ffff000, user kstack 0x000000008011a000
+    User application is loading.
+    CODE_SEGMENT added at mapped info offset:3
+    Application program entry point (virtual address): 0x000000008002149e
+    going to insert process 0 to ready queue.
+    going to schedule process 0 to run.
+    User call fork.
+    will fork a child from parent 0.
+    in alloc_proc. user frame 0x0000000080112000, user stack 0x000000007ffff000, user kstack 0x0000000080111000
+    do_fork map code segment at pa:ffffffff8002149e of parent to child at va:000000008002149e.
+    going to insert process 1 to ready queue.
+    Parent: Hello world! child id 1
+    User exit with code:0.
+    going to schedule process 1 to run.
+    Child: Hello world!
+    User exit with code:0.
+    no more ready processes, system shutdown now.
+    System is shutting down with exit code 0.
+    [rustsbi] reset triggered! todo: shutdown all harts on k210; program halt. Type: 0, reason: 0
+\end{lstlisting}
+
 
 \section{进程的控制权交接}
 
@@ -462,6 +830,70 @@ yield()函数是由PKE内核实现的系统调用功能之一。
 我们的实验预期是，父子进程之间的调度是可以交替的，
 也就是说父子进程之间需要轮流打印出他们对应的字符串。
 
+% \begin{lstlisting}[caption={lab8实验结果（移植K210前）}]
+%     In m_start, hartid:0
+%     HTIF is available!
+%     (Emulated) memory size: 2048 MB
+%     Enter supervisor mode...
+%     PKE kernel start 0x0000000080000000, PKE kernel end: 0x0000000080010000, PKE kernel size: 0x0000000000010000 .
+%     free physical memory address: [0x0000000080010000, 0x0000000087ffffff]
+%     kernel memory manager is initializing ...
+%     KERN_BASE 0x0000000080000000
+%     physical address of _etext is: 0x0000000080005000
+%     kernel page table is on
+%     Switching to user mode...
+%     in alloc_proc. user frame 0x0000000087fbc000, user stack 0x000000007ffff000, user kstack 0x0000000087fbb000
+%     User application is loading.
+%     Application: ./obj/app_yield
+%     CODE_SEGMENT added at mapped info offset:3
+%     Application program entry point (virtual address): 0x000000000001017c
+%     going to insert process 0 to ready queue.
+%     going to schedule process 0 to run.
+%     User call fork.
+%     will fork a child from parent 0.
+%     in alloc_proc. user frame 0x0000000087faf000, user stack 0x000000007ffff000, user kstack 0x0000000087fae000
+%     do_fork map code segment at pa:0000000087fb2000 of parent to child at va:0000000000010000.
+%     going to insert process 1 to ready queue.
+%     Parent: Hello world!
+%     Parent running 0
+%     going to insert process 0 to ready queue.
+%     going to schedule process 1 to run.
+%     Child: Hello world!
+%     Child running 0
+%     going to insert process 1 to ready queue.
+%     going to schedule process 0 to run.
+%     Parent running 10000
+%     going to insert process 0 to ready queue.
+%     going to schedule process 1 to run.
+%     Child running 10000
+%     going to insert process 1 to ready queue.
+%     going to schedule process 0 to run.
+%     Parent running 20000
+%     going to insert process 0 to ready queue.
+%     going to schedule process 1 to run.
+%     Child running 20000
+%     going to insert process 1 to ready queue.
+%     going to schedule process 0 to run.
+%     Parent running 30000
+%     going to insert process 0 to ready queue.
+%     going to schedule process 1 to run.
+%     Child running 30000
+%     going to insert process 1 to ready queue.
+%     going to schedule process 0 to run.
+%     Parent running 40000
+%     going to insert process 0 to ready queue.
+%     going to schedule process 1 to run.
+%     Child running 40000
+%     ......
+%     going to insert process 1 to ready queue.
+%     going to schedule process 0 to run.
+%     User exit with code:0.
+%     going to schedule process 1 to run.
+%     User exit with code:0.
+%     no more ready processes, system shutdown now.
+%     System is shutting down with exit code 0.    
+% \end{lstlisting}
+
 \subsection{具体实现}
 
 如下，本文给出了yield()函数的实现。实现逻辑较为简单，就不再具体阐述了。
@@ -475,6 +907,83 @@ yield()函数是由PKE内核实现的系统调用功能之一。
     
         return 0;
     }    
+\end{lstlisting}
+
+\subsection{功能测试}
+
+将实验要求实现后，我们可以在K210上运行实验代码，得到如下结果。
+此结果与PKE移植前的实验预期基本一致，这意味着此次实验的功能测试通过。
+
+\begin{lstlisting}[caption=lab8实验结果（移植K210后）]
+    .______       __    __      _______.___________.  _______..______   __
+    |   _  \     |  |  |  |    /       |           | /       ||   _  \ |  |
+    |  |_)  |    |  |  |  |   |   (----`---|  |----`|   (----`|  |_)  ||  |
+    |      /     |  |  |  |    \   \       |  |      \   \    |   _  < |  |
+    |  |\  \----.|  `--'  |.----)   |      |  |  .----)   |   |  |_)  ||  |
+    | _| `._____| \______/ |_______/       |__|  |_______/    |______/ |__|
+    [rustsbi] Implementation: RustSBI-K210 Version 0.0.2
+    [rustsbi] misa: RV64ACDFIMSU
+    [rustsbi] mideleg: ssoft, stimer (0x22)
+    [rustsbi] medeleg: ima, bkpt, uecall (0x109)
+    [rustsbi] enter supervisor 0x80020000
+    Enter supervisor mode...
+    PKE kernel start 0x0000000080020000, PKE kernel end: 0x0000000080029000, PKE kernel size: 0x0000000000009000 .
+    free physical memory address: [0x0000000080029000, 0x000000008011ffff]
+    kernel memory manager is initializing ...
+    KERN_BASE 0x0000000080020000
+    physical address of _etext is: 0x0000000080025000
+    kernel page table is on
+    Switch to user mode...
+    in alloc_proc. user frame 0x000000008011b000, user stack 0x000000007ffff000, user kstack 0x000000008011a000
+    User application is loading.
+    CODE_SEGMENT added at mapped info offset:3
+    Application program entry point (virtual address): 0x00000000800215f2
+    going to insert process 0 to ready queue.
+    going to schedule process 0 to run.
+    User call fork.
+    will fork a child from parent 0.
+    in alloc_proc. user frame 0x0000000080112000, user stack 0x000000007ffff000, user kstack 0x0000000080111000
+    do_fork map code segment at pa:ffffffff800215f2 of parent to child at va:00000000800215f2.
+    going to insert process 1 to ready queue.
+    Parent: Hello world!
+    Parent running 0
+    going to insert process 0 to ready queue.
+    going to schedule process 1 to run.
+    Child: Hello world!
+    Child running 0
+    going to insert process 1 to ready queue.
+    going to schedule process 0 to run.
+    Parent running 10000
+    going to insert process 0 to ready queue.
+    going to schedule process 1 to run.
+    Child running 10000
+    going to insert process 1 to ready queue.
+    going to schedule process 0 to run.
+    Parent running 20000
+    going to insert process 0 to ready queue.
+    going to schedule process 1 to run.
+    Child running 20000
+    going to insert process 1 to ready queue.
+    going to schedule process 0 to run.
+    Parent running 30000
+    going to insert process 0 to ready queue.
+    going to schedule process 1 to run.
+    Child running 30000
+    going to insert process 1 to ready queue.
+    going to schedule process 0 to run.
+    Parent running 40000
+    going to insert process 0 to ready queue.
+    going to schedule process 1 to run.
+    Child running 40000
+    ....
+    going to insert process 1 to ready queue.
+    going to schedule process 0 to run.
+    User exit with code:0.
+    going to schedule process 1 to run.
+    User exit with code:0.
+    no more ready processes, system shutdown now.
+    System is shutting down with exit code 0.
+    [rustsbi] reset triggered! todo: shutdown all harts on k210; program halt. Type: 0, reason: 0    
 \end{lstlisting}
 
 \section{进程的时间片调度}
@@ -518,6 +1027,66 @@ yield()函数是由PKE内核实现的系统调用功能之一。
 所以我们的实验预期是，完成PKE内核中时间片调度进程的实现，
 并让父子进程交替执行。
 
+% \begin{lstlisting}[caption={lab9实验结果（移植K210前）}]
+%     In m_start, hartid:0
+%     HTIF is available!
+%     (Emulated) memory size: 2048 MB
+%     Enter supervisor mode...
+%     PKE kernel start 0x0000000080000000, PKE kernel end: 0x0000000080010000, PKE kernel size: 0x0000000000010000 .
+%     free physical memory address: [0x0000000080010000, 0x0000000087ffffff]
+%     kernel memory manager is initializing ...
+%     KERN_BASE 0x0000000080000000
+%     physical address of _etext is: 0x0000000080005000
+%     kernel page table is on
+%     Switching to user mode...
+%     in alloc_proc. user frame 0x0000000087fbc000, user stack 0x000000007ffff000, user kstack 0x0000000087fbb000
+%     User application is loading.
+%     Application: ./obj/app_two_long_loops
+%     CODE_SEGMENT added at mapped info offset:3
+%     Application program entry point (virtual address): 0x000000000001017c
+%     going to insert process 0 to ready queue.
+%     going to schedule process 0 to run.
+%     User call fork.
+%     will fork a child from parent 0.
+%     in alloc_proc. user frame 0x0000000087faf000, user stack 0x000000007ffff000, user kstack 0x0000000087fae000
+%     do_fork map code segment at pa:0000000087fb2000 of parent to child at va:0000000000010000.
+%     going to insert process 1 to ready queue.
+%     Parent: Hello world!
+%     Parent running 0
+%     Parent running 10000000
+%     Ticks 0
+%     Parent running 20000000
+%     Ticks 1
+%     going to insert process 0 to ready queue.
+%     going to schedule process 1 to run.
+%     Child: Hello world!
+%     Child running 0
+%     Child running 10000000
+%     Ticks 2
+%     Child running 20000000
+%     .....
+%     Ticks 11
+%     going to insert process 1 to ready queue.
+%     going to schedule process 0 to run.
+%     Parent running 80000000
+%     Ticks 12
+%     Parent running 90000000
+%     Ticks 13
+%     going to insert process 0 to ready queue.
+%     going to schedule process 1 to run.
+%     Child running 80000000
+%     Ticks 14
+%     Child running 90000000
+%     Ticks 15
+%     going to insert process 1 to ready queue.
+%     going to schedule process 0 to run.
+%     User exit with code:0.
+%     going to schedule process 1 to run.
+%     User exit with code:0.
+%     no more ready processes, system shutdown now.
+%     System is shutting down with exit code 0.    
+% \end{lstlisting}
+
 \subsection{具体实现}
 
 \begin{lstlisting}[caption={时间片调度}, label={lst:time_slice}, language=C]
@@ -553,6 +1122,74 @@ yield()函数是由PKE内核实现的系统调用功能之一。
 时间片调度进程的实现，是通过设置定时器中断，
 当S模式的PKE拦截到定时器中断时，
 就会执行中断处理程序，处理程序其中就包括了进程的切换。
+
+\subsection{功能测试}
+
+将实验要求实现后，我们可以在K210上运行实验代码，得到如下结果。
+此结果与PKE移植前的实验预期基本一致，这意味着此次实验的功能测试通过。
+
+\begin{lstlisting}[caption={lab9实验结果（移植K210后）}]
+    .______       __    __      _______.___________.  _______..______   __
+    |   _  \     |  |  |  |    /       |           | /       ||   _  \ |  |
+    |  |_)  |    |  |  |  |   |   (----`---|  |----`|   (----`|  |_)  ||  |
+    |      /     |  |  |  |    \   \       |  |      \   \    |   _  < |  |
+    |  |\  \----.|  `--'  |.----)   |      |  |  .----)   |   |  |_)  ||  |
+    | _| `._____| \______/ |_______/       |__|  |_______/    |______/ |__|
+    [rustsbi] Implementation: RustSBI-K210 Version 0.0.2
+    [rustsbi] misa: RV64ACDFIMSU
+    [rustsbi] mideleg: ssoft, stimer (0x22)
+    [rustsbi] medeleg: ima, bkpt, uecall (0x109)
+    [rustsbi] enter supervisor 0x80020000
+    Enter supervisor mode...
+    ++ setup timer interrupts
+    PKE kernel start 0x0000000080020000, PKE kernel end: 0x0000000080029000, PKE kernel size: 0x0000000000009000 .
+    free physical memory address: [0x0000000080029000, 0x000000008011ffff]
+    kernel memory manager is initializing ...
+    KERN_BASE 0x0000000080020000
+    physical address of _etext is: 0x0000000080025000
+    kernel page table is on
+    Switch to user mode...
+    in alloc_proc. user frame 0x000000008011b000, user stack 0x000000007ffff000, user kstack 0x000000008011a000
+    User application is loading.
+    CODE_SEGMENT added at mapped info offset:3
+    Application program entry point (virtual address): 0x0000000080021652
+    going to insert process 0 to ready queue.
+    going to schedule process 0 to run.
+    User call fork.
+    will fork a child from parent 0.
+    in alloc_proc. user frame 0x0000000080112000, user stack 0x000000007ffff000, user kstack 0x0000000080111000
+    do_fork map code segment at pa:ffffffff80021652 of parent to child at va:0000000080021652.
+    going to insert process 1 to ready queue.
+    Parent: Hello world!
+    Parent running 0
+    Parent running 10000000
+    Parent running 20000000
+    Parent running 30000000
+    Ticks 1
+    Parent running 40000000
+    Parent running 50000000
+    Parent running 60000000
+    Ticks 2
+    going to insert process 0 to ready queue.
+    going to schedule process 1 to run.
+    Child: Hello world!
+    Child running 0
+    Child running 10000000
+    Child running 20000000
+    Child running 30000000
+    ......
+    Ticks 5
+    User exit with code:0.
+    going to schedule process 1 to run.
+    Child running 70000000
+    Child running 80000000
+    Ticks 6
+    Child running 90000000
+    User exit with code:0.
+    no more ready processes, system shutdown now.
+    System is shutting down with exit code 0.
+    [rustsbi] reset triggered! todo: shutdown all harts on k210; program halt. Type: 0, reason: 0    
+\end{lstlisting}
 
 \section{实验资料的管理}
 
